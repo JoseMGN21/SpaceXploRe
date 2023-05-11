@@ -1,0 +1,214 @@
+/*
+
+--------- Planetas ---------
+
+    var sol = BABYLON.MeshBuilder.CreateSphere("sol", {diameter: 54}, scene);
+    sol.position.set(0,0,0);
+    sol.material = materiales.MaterialFromTexture("sol", {diffuseTexture: texturaSol}, scene);
+    sol.material.emissiveColor = new BABYLON.Color3(1,1,1);
+    sol.light = new BABYLON.PointLight("luzSol", new BABYLON.Vector3(0,0,0), scene);
+    sol.light.intensity = 1;
+    sol.checkCollisions = true;
+
+    var mercurio = BABYLON.MeshBuilder.CreateSphere("mercurio", {diameter: 0.382}, scene);
+    mercurio.position.set(15,0,0);
+    mercurio.material = materiales.MaterialFromTexture("mercurio", {diffuseTexture: texturaMercurio}, scene);
+    mercurio.checkCollisions = true;
+    mercurio.rotation.z = Degrees_to_radians(0.1);
+
+    var venus = BABYLON.MeshBuilder.CreateSphere("venus", {diameter: .949}, scene);
+    venus.position.set(20,0,0);
+    venus.material = materiales.MaterialFromTexture("venus", {diffuseTexture: texturaVenus}, scene);
+    venus.checkCollisions = true;
+    venus.rotation.z = Degrees_to_radians(177);
+    
+    var tierra = BABYLON.MeshBuilder.CreateSphere("tierra", {diameter: 1}, scene);
+    tierra.position.set(25,0,0);
+    tierra.material = materiales.MaterialFromTexture("tierra", {diffuseTexture: texturaTierra}, scene);
+    tierra.checkCollisions = true;
+    tierra.rotation.z = Degrees_to_radians(203);
+
+    var luna = BABYLON.MeshBuilder.CreateSphere("luna", {diameter: .2724}, scene);
+    luna.position.set(27,0,0);
+    luna.material = materiales.MaterialFromTexture("luna", {diffuseTexture: texturaLuna}, scene);
+    luna.checkCollisions = true;
+
+    var marte = BABYLON.MeshBuilder.CreateSphere("marte", {diameter: .53}, scene);
+    marte.position.set(30,0,0);
+    marte.material = materiales.MaterialFromTexture("marte", {diffuseTexture: texturaMarte}, scene);
+    marte.checkCollisions = true;
+    marte.rotation.z = Degrees_to_radians(25);
+
+    var jupiter = BABYLON.MeshBuilder.CreateSphere("jupiter", {diameter: 11.2}, scene);
+    jupiter.position.set(35,0,0);
+    jupiter.material = materiales.MaterialFromTexture("jupiter", {diffuseTexture: texturaJupiter}, scene);
+    jupiter.checkCollisions = true;
+    jupiter.rotation.z = Degrees_to_radians(3);
+
+    var saturno = BABYLON.MeshBuilder.CreateSphere("saturno", {diameter: 9.41}, scene);
+    saturno.position.set(40,0,0);
+    saturno.material = materiales.MaterialFromTexture("saturno", {diffuseTexture: texturaSaturno}, scene);
+    saturno.checkCollisions = true;
+    saturno.rotation.z = Degrees_to_radians(27);
+
+    var anillosSaturno = BABYLON.MeshBuilder.CreateTorus("anillosSaturno", {diameter: 19.41, thickness: 8}, scene);
+    anillosSaturno.position.set(0,0,0);
+    var anillosSaturno_material = materiales.MaterialFromTexture("anillosSaturno", {diffuseTexture: texturaAnillosSaturno}, scene);
+    anillosSaturno_material.hasAlpha = true;
+    anillosSaturno.material = anillosSaturno_material;
+    anillosSaturno.checkCollisions = true;
+    anillosSaturno.scaling = new BABYLON.Vector3(1,.0001,1);
+    anillosSaturno.material.emissiveColor = new BABYLON.Color3(0.5,0.5,0.5);
+
+    var urano = BABYLON.MeshBuilder.CreateSphere("urano", {diameter: 3.98}, scene);
+    urano.position.set(45,0,0);
+    urano.material = materiales.MaterialFromTexture("urano", {diffuseTexture: texturaUrano}, scene);
+    urano.checkCollisions = true;
+    urano.rotation.z = Degrees_to_radians(98);
+
+    var neptuno = BABYLON.MeshBuilder.CreateSphere("neptuno", {diameter: 3.81}, scene);
+    neptuno.position.set(50,0,0);
+    neptuno.material = materiales.MaterialFromTexture("neptuno", {diffuseTexture: texturaNeptuno}, scene);
+    neptuno.checkCollisions = true;
+    neptuno.rotation.z = Degrees_to_radians(28); 
+
+
+    ------------- Orbitas ------------
+    var puntosMercurio = 88; 
+    var puntosVenus = 224;
+    var puntosTierra = 365;
+    var puntosLuna = 27;
+    var puntosMarte = 686;
+    var puntosJupiter = 4329;
+    var puntosSaturno = 10753;
+    var puntosUrano = 30663;
+    var puntosNeptuno = 60148;
+    var puntosOrbitaMercurio = [];
+    var puntosOrbitaVenus = [];
+    var puntosOrbitaTierra = [];
+    var puntosOrbitaLuna = [];
+    var puntosOrbitaMarte = [];
+    var puntosOrbitaJupiter = [];
+    var puntosOrbitaSaturno = [];
+    var puntosOrbitaUrano = [];
+    var puntosOrbitaNeptuno = [];
+    var deltaThetaMercurio = Math.PI / puntosMercurio;
+    var deltaThetaVenus = Math.PI / puntosVenus;
+    var deltaThetaTierra = Math.PI / puntosTierra;
+    var deltaThetaLuna = Math.PI / puntosLuna;
+    var deltaThetaMarte = Math.PI / puntosMarte;
+    var deltaThetaJupiter = Math.PI / puntosJupiter;
+    var deltaThetaSaturno = Math.PI / puntosSaturno;
+    var deltaThetaUrano = Math.PI / puntosUrano;
+    var deltaThetaNeptuno = Math.PI / puntosNeptuno;
+
+    for (var theta = 0; theta < 2 * Math.PI; theta += deltaThetaMercurio) {
+        puntosOrbitaMercurio.push(new BABYLON.Vector3(ua * 0.304 * Math.sin(theta), 0, ua * 0.38* Math.cos(theta)));
+    }
+    for (var theta = 0; theta < 2 * Math.PI; theta += deltaThetaVenus) {
+        puntosOrbitaVenus.push(new BABYLON.Vector3(ua * 0.576 * Math.sin(theta), 0, ua * 0.72 * Math.cos(theta)));
+    }
+    for (var theta = 0; theta < 2 * Math.PI; theta += deltaThetaTierra) {    
+        puntosOrbitaTierra.push(new BABYLON.Vector3(ua * 0.8 * Math.sin(theta), 0, ua * Math.cos(theta)));
+    }
+    for (var theta = 0; theta < 2 * Math.PI; theta += deltaThetaLuna) {
+        puntosOrbitaLuna.push(new BABYLON.Vector3(ua * 0.0208 * Math.sin(theta), 0, ua * 0.026 * Math.cos(theta)));
+    }
+    for (var theta = 0; theta < 2 * Math.PI; theta += deltaThetaMarte) {
+        puntosOrbitaMarte.push(new BABYLON.Vector3(ua * 1.216 * Math.sin(theta), 0, ua * 1.52 * Math.cos(theta)));
+    }
+    for (var theta = 0; theta < 2 * Math.PI; theta += deltaThetaJupiter) {
+        puntosOrbitaJupiter.push(new BABYLON.Vector3(ua * 4.16 * Math.sin(theta), 0, ua * 5.2 * Math.cos(theta)));
+    }
+    for (var theta = 0; theta < 2 * Math.PI; theta += deltaThetaSaturno) {
+        puntosOrbitaSaturno.push(new BABYLON.Vector3(ua * 7.632 * Math.sin(theta), 0, ua * 9.54 * Math.cos(theta)));
+    }
+    for (var theta = 0; theta < 2 * Math.PI; theta += deltaThetaUrano) {
+        puntosOrbitaUrano.push(new BABYLON.Vector3(ua * 15.376 * Math.sin(theta), 0, ua * 19.22 * Math.cos(theta)));
+    }
+    for (var theta = 0; theta < 2 * Math.PI; theta += deltaThetaNeptuno) {
+        puntosOrbitaNeptuno.push(new BABYLON.Vector3(ua * 24.048 * Math.sin(theta), 0, ua * 30.06 * Math.cos(theta)));
+    }
+
+    var orbitaMercurio = BABYLON.MeshBuilder.CreateLines("orbitaMercurio", { points: puntosOrbitaMercurio }, scene);
+    orbitaMercurio.color = BABYLON.Color3.Red();
+    orbitaMercurio.position = new BABYLON.Vector3(0, 0, 0)
+    orbitaMercurio.rotation.z = Degrees_to_radians(7);
+
+    var orbitaVenus = BABYLON.MeshBuilder.CreateLines("orbitaVenus", { points: puntosOrbitaVenus }, scene);
+    orbitaVenus.color = BABYLON.Color3.Red();
+    orbitaVenus.position = new BABYLON.Vector3(0, 0, 0)
+    orbitaVenus.rotation.z = Degrees_to_radians(3.4);
+    
+    var orbitaTierra = BABYLON.MeshBuilder.CreateLines("orbitaTierra", { points: puntosOrbitaTierra }, scene);
+    orbitaTierra.color = BABYLON.Color3.Red();
+    orbitaTierra.position = new BABYLON.Vector3(0, 0, 0)
+
+    var orbitaLuna = BABYLON.MeshBuilder.CreateLines("orbitaLuna", { points: puntosOrbitaLuna }, scene);
+    orbitaLuna.color = BABYLON.Color3.Red();
+    orbitaLuna.position = new BABYLON.Vector3(0, 0, 0)
+
+    var orbitaMarte = BABYLON.MeshBuilder.CreateLines("orbitaMarte", { points: puntosOrbitaMarte }, scene);
+    orbitaMarte.color = BABYLON.Color3.Red();
+    orbitaMarte.position = new BABYLON.Vector3(0, 0, 0)
+    orbitaMarte.rotation.z = Degrees_to_radians(1.85);
+
+    var orbitaJupiter = BABYLON.MeshBuilder.CreateLines("orbitaJupiter", { points: puntosOrbitaJupiter }, scene);
+    orbitaJupiter.color = BABYLON.Color3.Red();
+    orbitaJupiter.position = new BABYLON.Vector3(0, 0, 0)
+    orbitaJupiter.rotation.z = Degrees_to_radians(1.3);
+
+    var orbitaSaturno = BABYLON.MeshBuilder.CreateLines("orbitaSaturno", { points: puntosOrbitaSaturno }, scene);
+    orbitaSaturno.color = BABYLON.Color3.Red();
+    orbitaSaturno.position = new BABYLON.Vector3(0, 0, 0)
+    orbitaSaturno.rotation.z = Degrees_to_radians(2.49);
+
+    var orbitaUrano = BABYLON.MeshBuilder.CreateLines("orbitaUrano", { points: puntosOrbitaUrano }, scene);
+    orbitaUrano.color = BABYLON.Color3.Red();
+    orbitaUrano.position = new BABYLON.Vector3(0, 0, 0)
+    orbitaUrano.rotation.z = Degrees_to_radians(0.77);
+
+    var orbitaNeptuno = BABYLON.MeshBuilder.CreateLines("orbitaNeptuno", { points: puntosOrbitaNeptuno }, scene);
+    orbitaNeptuno.color = BABYLON.Color3.Red();
+    orbitaNeptuno.position = new BABYLON.Vector3(0, 0, 0)
+    orbitaNeptuno.rotation.z = Degrees_to_radians(1.77);
+
+    /*
+    --------------Mostrar y ocultar elementos de la interfaz--------------------
+    
+    advancedTextureConfig.getControlByName("BackgroundImage").isVisible = true;
+      advancedTextureConfig.getControlByName("SliderSize").isVisible = true;
+      advancedTextureConfig.getControlByName("CheckboxSound").isVisible = true;
+      advancedTextureConfig.getControlByName("CheckboxShowOrbits").isVisible = true;
+      advancedTextureConfig.getControlByName("ColorPickerOrbits").isVisible = true;
+      advancedTextureConfig.getControlByName("TextblockSize").isVisible = true;
+      advancedTextureConfig.getControlByName("ButtonClose").isVisible = true;
+
+      advancedTextureMain.getControlByName("BotonConfig").isVisible = false;
+      advancedTextureMain.getControlByName("SliderTierra").isVisible = false;
+
+      
+      advancedTextureConfig.getControlByName("BackgroundImage").isVisible = false;
+      advancedTextureConfig.getControlByName("SliderSize").isVisible = false;
+      advancedTextureConfig.getControlByName("CheckboxSound").isVisible = false;
+      advancedTextureConfig.getControlByName("CheckboxShowOrbits").isVisible = false;
+      advancedTextureConfig.getControlByName("ColorPickerOrbits").isVisible = false;
+      advancedTextureConfig.getControlByName("TextblockSize").isVisible = false;
+      advancedTextureConfig.getControlByName("ButtonClose").isVisible = false;
+
+      advancedTextureMain.getControlByName("BotonConfig").isVisible = true;
+      advancedTextureMain.getControlByName("SliderTierra").isVisible = true;
+      */
+      
+
+      /*
+      orbitaMercurio.isVisible = value;
+      orbitaVenus.isVisible = value;
+      orbitaTierra.isVisible = value;
+      orbitaLuna.isVisible = value;
+      orbitaMarte.isVisible = value;
+      orbitaJupiter.isVisible = value;
+      orbitaSaturno.isVisible = value;
+      orbitaUrano.isVisible = value;
+      orbitaNeptuno.isVisible = value;
+      */
