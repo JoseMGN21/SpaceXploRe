@@ -7,6 +7,7 @@ import * as earcut from "earcut";
 import * as materiales from "../Modules/Materials_Module";
 import * as luces from "../Modules/Lights_Module";
 import * as XR_Module from "../Modules/XR_Module";
+import * as AV from "../Modules/AV_module";
 import { PlayGround } from "../Babylon_components/PlayGround.js";
 import skyTexture from "../Resources/solar_system_textures/2k_stars_milky_way.jpg";
 import texturaSol from "../Resources/solar_system_textures/2k_sun.jpg";
@@ -22,10 +23,19 @@ import texturaNeptuno from "../Resources/solar_system_textures/2k_neptune.jpg";
 import texturaAnillosSaturno from "../Resources/solar_system_textures/2k_saturn_ring_alpha.png";
 import videoStartScreen from "../Resources/xplore_start_screen.mp4";
 import gifStartScreen from "../Resources/xplore_start_screen_gif.gif";
+import waving1 from "../Resources/waving_gif/tile000.png";
+import waving2 from "../Resources/waving_gif/tile002.png";
+import waving3 from "../Resources/waving_gif/tile004.png";
+import waving4 from "../Resources/waving_gif/tile006.png";
+import waving5 from "../Resources/waving_gif/tile008.png";
+import waving6 from "../Resources/waving_gif/tile010.png";
+import waving7 from "../Resources/waving_gif/tile012.png";
+import waving8 from "../Resources/waving_gif/tile014.png";
 import uiEjemplo from "../Resources/guiTextureEjemplo.json"
 import mainUI from "../Resources/mainScreenGUI2.json"
 import configGUI from "../Resources/configGUI.json"
 import startScreenGUI from "../Resources/startScreenGUI.json"
+import planetInfoGUI from "../Resources/planetInfoGUI.json"
 import textBoxGUI from "../Resources/textBoxGUI.json"
 import * as scenes from "../Modules/Scene_Manager_Module"
 import * as GUI from "babylonjs-gui"
@@ -41,6 +51,8 @@ const onSceneReady = async (e = {engine: new BABYLON.Engine, scene: new BABYLON.
     var mainUIElements = [];
     var startScreenUIElements = [];
     var textBoxUIElements = [];
+    var wavingGIFElements = [];
+    var planetInfoUIElements = [];
     var orbits = [];
     var planets = [];	
     var firstSceneContainer = new BABYLON.AssetContainer(e.scene);
@@ -51,6 +63,9 @@ const onSceneReady = async (e = {engine: new BABYLON.Engine, scene: new BABYLON.
     let fuel = 10000;
     var acceleration = 0;
     let lastPosition = new BABYLON.Vector3.Zero;
+    var wavingGifIndex = 0;
+    var dialogOn = false;
+    var planet = null;
 
     const { canvas, scene, engine } = e;
     // This creates and positions a free camera (non-mesh)}
@@ -196,6 +211,7 @@ const onSceneReady = async (e = {engine: new BABYLON.Engine, scene: new BABYLON.
     let advancedTextureConfig = GUI.AdvancedDynamicTexture.CreateFullscreenUI("configUI", true, scene);
     let advancedTextureStartScreen = GUI.AdvancedDynamicTexture.CreateFullscreenUI("startScreenUI", true, scene);
     let advancedTextureTextBox = GUI.AdvancedDynamicTexture.CreateFullscreenUI("textBoxUI", true, scene);
+    let advancedTexturePlanetInfo = GUI.AdvancedDynamicTexture.CreateFullscreenUI("planetInfoUI", true, scene);
 
     // Set the ideal W and H if you wish to scale with the window.
     advancedTextureMain.idealWidth = 1920;
@@ -207,11 +223,13 @@ const onSceneReady = async (e = {engine: new BABYLON.Engine, scene: new BABYLON.
     let loadedGUIConfig = await advancedTextureConfig.parseSerializedObject(configGUI);
     let loadedGUIStartScreen = await advancedTextureStartScreen.parseSerializedObject(startScreenGUI);
     let loadedGUITextBox = await advancedTextureTextBox.parseSerializedObject(textBoxGUI);
+    let loadedGUIPlanetInfo = await advancedTexturePlanetInfo.parseSerializedObject(planetInfoGUI);
 
     advancedTextureMain.addControl(loadedGUI);
     advancedTextureConfig.addControl(loadedGUIConfig);
     advancedTextureStartScreen.addControl(loadedGUIStartScreen);
     advancedTextureTextBox.addControl(loadedGUITextBox);  
+    advancedTexturePlanetInfo.addControl(loadedGUIPlanetInfo);
 
     configUIElements.push(advancedTextureConfig.getControlByName("BackgroundImage"));
     configUIElements.push(advancedTextureConfig.getControlByName("SliderSize"));
@@ -231,6 +249,8 @@ const onSceneReady = async (e = {engine: new BABYLON.Engine, scene: new BABYLON.
     textBoxUIElements.push(advancedTextureTextBox.getControlByName("DialogText"));
     textBoxUIElements.push(advancedTextureTextBox.getControlByName("RobotImage"));
     textBoxUIElements.push(advancedTextureTextBox.getControlByName("ClickText"));
+    planetInfoUIElements.push(advancedTexturePlanetInfo.getControlByName("PlanetInfo"));
+    planetInfoUIElements.push(advancedTexturePlanetInfo.getControlByName("ButtonBack"));
 
 
     advancedTextureConfig.getControlByName("BackgroundImage").isVisible = false;
@@ -241,7 +261,17 @@ const onSceneReady = async (e = {engine: new BABYLON.Engine, scene: new BABYLON.
     advancedTextureConfig.getControlByName("TextblockSize").isVisible = false;
     advancedTextureConfig.getControlByName("ButtonClose").isVisible = false;
 
+    wavingGIFElements.push(waving1);
+    wavingGIFElements.push(waving2);
+    wavingGIFElements.push(waving3);
+    wavingGIFElements.push(waving4);
+    wavingGIFElements.push(waving5);
+    wavingGIFElements.push(waving6);
+    wavingGIFElements.push(waving7);
+    wavingGIFElements.push(waving8);
+
     let backgroundStart = advancedTextureStartScreen.getControlByName("BackgroundGIF");
+    backgroundStart.isVisible = true;
 
     let botonConfig = advancedTextureMain.getControlByName("BotonConfig");
     botonConfig.isVisible = true;
@@ -269,9 +299,23 @@ const onSceneReady = async (e = {engine: new BABYLON.Engine, scene: new BABYLON.
 
     let clickText = advancedTextureTextBox.getControlByName("ClickText");
 
+    let robotImage = advancedTextureTextBox.getControlByName("RobotImage");
+
+    let dialogText = advancedTextureTextBox.getControlByName("DialogText");
+
+    let botonYes = advancedTextureTextBox.getControlByName("ButtonYes");
+
+    let botonNo = advancedTextureTextBox.getControlByName("ButtonNo");
+
+    let buttonBack = advancedTexturePlanetInfo.getControlByName("ButtonBack");
+
     UI.hideUI(configUIElements);
     UI.hideUI(mainUIElements);
+    UI.hideUI(planetInfoUIElements);
     UI.showUI(textBoxUIElements);
+    botonYes.isVisible = false;
+    botonNo.isVisible = false;
+    dialogOn = true;
     backgroundStart.isVisible = false;
 
 
@@ -311,30 +355,39 @@ const onSceneReady = async (e = {engine: new BABYLON.Engine, scene: new BABYLON.
             }
             camera.position.addInPlace(direction.scale(1*acceleration));
 
-            console.log("alpha: " + clickText.alpha)
+            //console.log("alpha: " + clickText.alpha)
           if(alphaVisible == true){
-            clickText.alpha -= 0.05;
+            clickText.alpha -= 0.1;
             if(clickText.alpha <= 0){
               //console.log("invisible")
               alphaVisible = false;
               clickText.alpha = 0.9;
             }
           }
-          if(alphaVisible == false){
-            clickText.alpha += 0.1;
-            //console.log("alpha up")
-            if(clickText.alpha >= 0.9){
-              //console.log("visible")
-              alphaVisible = true;
-              clickText.alpha = 1;
-            }
-          }
         }
+/*
+        if(elapsedTime >= .1){
+          robotImage.source = wavingGIFElements[wavingGifIndex]
+          wavingGifIndex += 1;
+          console.log(wavingGifIndex)
+          if(wavingGifIndex >= 8){
+            wavingGifIndex = 0;
+          }
+        }*/
         
-        if(camController.calculateDistance(camera.position,tierra.position) <= 100){
+        if(camController.calculateDistance(camera.position,tierra.position) <= 100 && planet != tierra){
+          dialogText.text = "Estas en la tierra, ¿deseas anclarte a su órbita?"
+          UI.showUI(textBoxUIElements);
+          botonYes.isVisible = true;
+          botonNo.isVisible = true;
+          clickText.isVisible = false;
+          UI.hideUI(mainUIElements);
           console.log("Estas en la tierra")
         }
-
+        
+        if(planet != null){
+          camController.followPlanet(camera,planet);
+        }
         
         //Rotación de los planetas
       
@@ -386,6 +439,17 @@ const onSceneReady = async (e = {engine: new BABYLON.Engine, scene: new BABYLON.
     });
 
    // --------------------- COLOR PICKER --------------------- 
+  scene.onPointerObservable.add((pointerInfo) => {
+  if(pointerInfo.type == BABYLON.PointerEventTypes.POINTERDOWN){
+      if(dialogOn == true){
+      UI.hideUI(textBoxUIElements);
+      UI.showUI(mainUIElements);
+      dialogOn = false;
+      }
+  }
+}); 
+
+  
    
    colorPicker.onValueChangedObservable.add((value) => {
       console.log("Color: " + value.toHexString());
@@ -401,6 +465,19 @@ const onSceneReady = async (e = {engine: new BABYLON.Engine, scene: new BABYLON.
       orbitaNeptuno.color = new BABYLON.Color3.FromHexString(color);
     });
     
+    botonYes.onPointerClickObservable.add(() => {
+      camera.position.x = tierra.position.x + 10;
+      camera.position.y = tierra.position.y + 10;
+      camera.position.z = tierra.position.z + 10;
+      UI.hideUI(textBoxUIElements);
+      console.log("text UI hidden")
+      UI.showUI(planetInfoUIElements);
+      console.log("main UI shown")
+      botonYes.isVisible = false;
+      botonNo.isVisible = false;
+      planet = tierra;
+
+    });
 
     botonConfig.onPointerClickObservable.add(() => {
       console.log("Configurar");
@@ -428,6 +505,13 @@ const onSceneReady = async (e = {engine: new BABYLON.Engine, scene: new BABYLON.
         console.log("Orbits hidden")
         UI.hideUI(orbits);
       }
+    });
+
+    buttonBack.onPointerClickObservable.add(() => {
+      console.log("Back");
+      UI.showUI(mainUIElements);
+      UI.hideUI(planetInfoUIElements);
+      planet = null;
     });
 
     
