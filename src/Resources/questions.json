@@ -1,0 +1,58 @@
+{"questions": [
+    {
+        "question": "¿Cuál es el planeta más cercano al sol?",
+        "answers": [
+            "Jupiter",
+            "Marte",
+            "Mercurio",
+            "Tierra"
+        ],
+        "correct": 2,
+        "answered": false
+    },
+    {
+        "question": "¿Cuál es el planeta con la temperatura más alta?",
+        "answers": [
+            "Mercurio",
+            "Venus",
+            "Jupiter",
+            "Saturno"
+        ],
+        "correct": 1,
+        "answered": false
+    },
+    {
+        "question": "¿Cuál es el planeta más grande del sistema solar?",
+        "answers": [
+            "Tierra",
+            "Saturno",
+            "Urano",
+            "Jupiter"
+        ],
+        "correct": 3,
+        "answered": false
+    },
+    {    
+        "question": "¿Cuál es el periodo orbital de Marte?",
+        "answers": [
+            "365 días",
+            "280 días",
+            "687 días",
+            "132 días"	
+        ],
+        "correct": 2,
+        "answered": false
+    },
+    {
+        "question": "¿Cuál es la composición atmosférica de Mercurio?",
+        "answers": [
+            "Helio y Sodio",
+            "Dióxido de carbono y oxígeno",
+            "Nitrógeno y Argón",
+            "Ninguna de las anteriores"
+        ],
+        "correct": 0,
+        "answered": false
+    }
+]
+}

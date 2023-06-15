@@ -7,6 +7,7 @@ import * as earcut from "earcut";
 import * as materiales from "../Modules/Materials_Module";
 import * as luces from "../Modules/Lights_Module";
 import * as XR_Module from "../Modules/XR_Module";
+import * as Questions_Module from "../Modules/Questions_Module";
 import * as AV from "../Modules/AV_module";
 import { PlayGround } from "../Babylon_components/PlayGround.js";
 import skyTexture from "../Resources/solar_system_textures/2k_stars_milky_way.jpg";
@@ -37,11 +38,14 @@ import configGUI from "../Resources/configGUI.json"
 import startScreenGUI from "../Resources/startScreenGUI.json"
 import planetInfoGUI from "../Resources/planetInfoGUI.json"
 import textBoxGUI from "../Resources/textBoxGUI.json"
+import questionsGUI from "../Resources/questionsGUI.json"
 import * as scenes from "../Modules/Scene_Manager_Module"
 import * as GUI from "babylonjs-gui"
 import * as planetConstructor from "../Modules/Planet_Constructor_Module"
 import * as UI from "../Modules/UI_Manager_Module"
 import * as  camController from "../Modules/Camera_Controller"
+import { Await } from "react-router-dom";
+import questionsJSON from '../Resources/questions.json';
 
 
 
@@ -51,25 +55,47 @@ const onSceneReady = async (e = {engine: new BABYLON.Engine, scene: new BABYLON.
     var mainUIElements = [];
     var startScreenUIElements = [];
     var textBoxUIElements = [];
+    var questionsUIElements = [];
     var wavingGIFElements = [];
     var planetInfoUIElements = [];
+    var confirmButtonsUIElements = [];
     var orbits = [];
     var planets = [];	
+    var visitedPlanets = [];
+    var shownQuestions = [];
     var firstSceneContainer = new BABYLON.AssetContainer(e.scene);
     var secondSceneContainer = new BABYLON.AssetContainer(e.scene);
     let movedKM = 0;
     let moving = false;
     let elapsedTime = 0;
-    let fuel = 10000;
+    let fuel = 1000;
     var acceleration = 0;
     let lastPosition = new BABYLON.Vector3.Zero;
     var wavingGifIndex = 0;
-    var dialogOn = false;
+    //var dialogOn = false;
     var planet = null;
+    var started = false;
+    var nearPlanet = null;
+    var anchored = false;
+    var questionAnswered = false;
+    var showingQuestionFuel = false;
+    var UIshown = "startScreen";
+    let question = null;
+    let incorrectAnswers = 0;
+    let partOneAnswered = false;
+    let showingQuestionPartOne = false;
+    let correctAnswers = 0;
+    let testOneAvailable = false;
+    let neededKmToTest = 500;
+    let questionShown = false;
+    let showingPlanetAnchor = false;
+
+    //const assetsManager = new BABYLON.AssetsManager(scene);
+
 
     const { canvas, scene, engine } = e;
     // This creates and positions a free camera (non-mesh)}
-    const camera = new BABYLON.FreeCamera("camera1", new BABYLON.Vector3(1118, 60, 1118), scene);
+    const camera = new BABYLON.FreeCamera("camera1", new BABYLON.Vector3(200, 60, 200), scene);
     camera.inputs.clear();
     camera.inputs.add(new BABYLON.FreeCameraMouseInput())
     //camera.physicsImpostor = new BABYLON.PhysicsImpostor(camera, BABYLON.PhysicsImpostor.SphereImpostor, { mass: 1, restitution: 0.9 }, scene);
@@ -78,7 +104,7 @@ const onSceneReady = async (e = {engine: new BABYLON.Engine, scene: new BABYLON.
     lastPosition.z = camera.position.z;
 
     // This targets the camera to scene origin
-    camera.setTarget(new BABYLON.Vector3(1118, 0, 700));
+    camera.setTarget(new BABYLON.Vector3(0, 0, 0));
 
     // This attaches the camera to the canvas
     camera.attachControl(canvas, false);
@@ -130,59 +156,60 @@ const onSceneReady = async (e = {engine: new BABYLON.Engine, scene: new BABYLON.
 
 
     var sol = planetConstructor.planetCreate(54, texturaSol, "sun", new BABYLON.Vector3.Zero, 0, scene);
-    planets.push(sol);
-    console.log(sol.position);
-    var mercurio = planetConstructor.planetCreate(0.382, texturaMercurio, "mercury", new BABYLON.Vector3(15,0,0), 0.1, scene);
+    //console.log("diametro del sol" + sol.Mesh.diameter);
+    //planets.push(sol);
+    //console.log(sol.position);
+    var mercurio = planetConstructor.planetCreate(0.382 * 5, texturaMercurio, "mercury", new BABYLON.Vector3(15,0,0), 0.1, scene);
     planets.push(mercurio);
     firstSceneContainer.meshes.push(mercurio);
-    var venus = planetConstructor.planetCreate(0.949, texturaVenus, "venus", new BABYLON.Vector3(20,0,0), 177, scene);
+    var venus = planetConstructor.planetCreate(0.949 * 5, texturaVenus, "venus", new BABYLON.Vector3(20,0,0), 177, scene);
     planets.push(venus);
     firstSceneContainer.meshes.push(venus);
-    var tierra = planetConstructor.planetCreate(1, texturaTierra, "earth", new BABYLON.Vector3(25,0,0), 203, scene);
+    var tierra = planetConstructor.planetCreate(1 * 5, texturaTierra, "earth", new BABYLON.Vector3(25,0,0), 203, scene);
     planets.push(tierra);	
     firstSceneContainer.meshes.push(tierra);
-    var luna = planetConstructor.planetCreate(0.2724, texturaLuna, "moon", new BABYLON.Vector3(27,0,0), 0, scene);
-    planets.push(luna);
+    var luna = planetConstructor.planetCreate(0.2724 * 5, texturaLuna, "moon", new BABYLON.Vector3(27,0,0), 0, scene);
+    //planets.push(luna);
     firstSceneContainer.meshes.push(luna);
-    var marte = planetConstructor.planetCreate(0.532, texturaMarte, "mars", new BABYLON.Vector3(30,0,0), 25, scene);
+    var marte = planetConstructor.planetCreate(0.532 * 5, texturaMarte, "mars", new BABYLON.Vector3(30,0,0), 25, scene);
     planets.push(marte);
     firstSceneContainer.meshes.push(marte);
-    var jupiter = planetConstructor.planetCreate(11.209, texturaJupiter, "jupiter", new BABYLON.Vector3(40,0,0), 3, scene);
+    var jupiter = planetConstructor.planetCreate(11.209 * 5, texturaJupiter, "jupiter", new BABYLON.Vector3(40,0,0), 3, scene);
     planets.push(jupiter);
     secondSceneContainer.meshes.push(jupiter);
-    var saturno = planetConstructor.planetCreate(9.449, texturaSaturno, "saturn", new BABYLON.Vector3(50,0,0), 26, scene);
+    var saturno = planetConstructor.planetCreate(9.449 * 5, texturaSaturno, "saturn", new BABYLON.Vector3(50,0,0), 26, scene);
     planets.push(saturno);
     secondSceneContainer.meshes.push(saturno);
-    var anillosSaturno = planetConstructor.planetCreate(9.449, texturaAnillosSaturno, "saturnRings", new BABYLON.Vector3(50,0,0), 26, scene);
-    planets.push(anillosSaturno);
+    var anillosSaturno = planetConstructor.planetCreate(9.449 * 5, texturaAnillosSaturno, "saturnRings", new BABYLON.Vector3(50,0,0), 26, scene);
+    //planets.push(anillosSaturno);
     secondSceneContainer.meshes.push(anillosSaturno);
-    var urano = planetConstructor.planetCreate(4.007, texturaUrano, "uranus", new BABYLON.Vector3(60,0,0), 82, scene);
+    var urano = planetConstructor.planetCreate(4.007 * 5, texturaUrano, "uranus", new BABYLON.Vector3(60,0,0), 82, scene);
     planets.push(urano);
     secondSceneContainer.meshes.push(urano);
-    var neptuno = planetConstructor.planetCreate(3.883, texturaNeptuno, "neptune", new BABYLON.Vector3(70,0,0), 28, scene);
+    var neptuno = planetConstructor.planetCreate(3.883 * 5, texturaNeptuno, "neptune", new BABYLON.Vector3(70,0,0), 28, scene);
     planets.push(neptuno);
     secondSceneContainer.meshes.push(neptuno);
     console.log(planets);
 
     var ua = 117.26846553048;
 
-    var orbitaMercurio = planetConstructor.orbitCreate("mercurio", 0.38, ua, 88, 7, scene);
+    var orbitaMercurio = planetConstructor.orbitCreate("mercurio", 0.38, ua, 88 * 5, 7, scene);
     orbits.push(orbitaMercurio.orbit);
-    var orbitaVenus = planetConstructor.orbitCreate("venus", 0.72, ua, 224, 3.4, scene);
+    var orbitaVenus = planetConstructor.orbitCreate("venus", 0.72, ua, 224 * 5, 3.4, scene);
     orbits.push(orbitaVenus.orbit);
-    var orbitaTierra = planetConstructor.orbitCreate("tierra", 1, ua, 365, 0, scene);
+    var orbitaTierra = planetConstructor.orbitCreate("tierra", 1, ua, 365 * 5, 0, scene);
     orbits.push(orbitaTierra.orbit);
-    var orbitaLuna = planetConstructor.orbitCreate("luna", 0.0257, ua, 27, 0, scene);
+    var orbitaLuna = planetConstructor.orbitCreate("luna", 0.0257 * 5, ua, 27 * 5, 0, scene);
     orbits.push(orbitaLuna.orbit);
-    var orbitaMarte = planetConstructor.orbitCreate("marte", 1.52, ua, 686, 1.85, scene);
+    var orbitaMarte = planetConstructor.orbitCreate("marte", 1.52, ua, 686, 1.85 * 5, scene);
     orbits.push(orbitaMarte.orbit);
-    var orbitaJupiter = planetConstructor.orbitCreate("jupiter", 5.20, ua, 4329, 1.3, scene);
+    var orbitaJupiter = planetConstructor.orbitCreate("jupiter", 5.20, ua, 4329 * 5, 1.3, scene);
     orbits.push(orbitaJupiter.orbit);
-    var orbitaSaturno = planetConstructor.orbitCreate("saturno", 9.54, ua, 10753, 2.49, scene);
+    var orbitaSaturno = planetConstructor.orbitCreate("saturno", 9.54, ua, 10753 * 5, 2.49, scene);
     orbits.push(orbitaSaturno.orbit);
-    var orbitaUrano = planetConstructor.orbitCreate("urano", 19.22, ua, 30663, 0.77, scene);
+    var orbitaUrano = planetConstructor.orbitCreate("urano", 19.22, ua, 30663 * 5, 0.77, scene);
     orbits.push(orbitaUrano.orbit);
-    var orbitaNeptuno = planetConstructor.orbitCreate("neptuno", 30.06, ua, 60148, 1.77, scene);
+    var orbitaNeptuno = planetConstructor.orbitCreate("neptuno", 30.06, ua, 60148 * 5, 1.77, scene);
     orbits.push(orbitaNeptuno.orbit);
     console.log(orbits);
 
@@ -192,7 +219,7 @@ const onSceneReady = async (e = {engine: new BABYLON.Engine, scene: new BABYLON.
     var movimientoVenus = 0;
     tierra.parent = orbitaTierra.orbit;
     var movimientoTierra = 0;
-    orbitaLuna.parent = tierra.orbit;
+    orbitaLuna.orbit.parent = tierra;
     luna.parent = orbitaLuna.orbit;
     var movimientoLuna = 0;
     marte.parent = orbitaMarte.orbit;
@@ -212,6 +239,7 @@ const onSceneReady = async (e = {engine: new BABYLON.Engine, scene: new BABYLON.
     let advancedTextureStartScreen = GUI.AdvancedDynamicTexture.CreateFullscreenUI("startScreenUI", true, scene);
     let advancedTextureTextBox = GUI.AdvancedDynamicTexture.CreateFullscreenUI("textBoxUI", true, scene);
     let advancedTexturePlanetInfo = GUI.AdvancedDynamicTexture.CreateFullscreenUI("planetInfoUI", true, scene);
+    let advancedTextureQuestions = GUI.AdvancedDynamicTexture.CreateFullscreenUI("questionsUI", true, scene);
 
     // Set the ideal W and H if you wish to scale with the window.
     advancedTextureMain.idealWidth = 1920;
@@ -224,12 +252,14 @@ const onSceneReady = async (e = {engine: new BABYLON.Engine, scene: new BABYLON.
     let loadedGUIStartScreen = await advancedTextureStartScreen.parseSerializedObject(startScreenGUI);
     let loadedGUITextBox = await advancedTextureTextBox.parseSerializedObject(textBoxGUI);
     let loadedGUIPlanetInfo = await advancedTexturePlanetInfo.parseSerializedObject(planetInfoGUI);
+    let loadedGUIQuestions = await advancedTextureQuestions.parseSerializedObject(questionsGUI);
 
     advancedTextureMain.addControl(loadedGUI);
     advancedTextureConfig.addControl(loadedGUIConfig);
     advancedTextureStartScreen.addControl(loadedGUIStartScreen);
     advancedTextureTextBox.addControl(loadedGUITextBox);  
     advancedTexturePlanetInfo.addControl(loadedGUIPlanetInfo);
+    advancedTextureQuestions.addControl(loadedGUIQuestions);
 
     configUIElements.push(advancedTextureConfig.getControlByName("BackgroundImage"));
     configUIElements.push(advancedTextureConfig.getControlByName("SliderSize"));
@@ -249,8 +279,23 @@ const onSceneReady = async (e = {engine: new BABYLON.Engine, scene: new BABYLON.
     textBoxUIElements.push(advancedTextureTextBox.getControlByName("DialogText"));
     textBoxUIElements.push(advancedTextureTextBox.getControlByName("RobotImage"));
     textBoxUIElements.push(advancedTextureTextBox.getControlByName("ClickText"));
+    confirmButtonsUIElements.push(advancedTextureTextBox.getControlByName("ButtonYes"));
+    confirmButtonsUIElements.push(advancedTextureTextBox.getControlByName("ButtonNo"));
     planetInfoUIElements.push(advancedTexturePlanetInfo.getControlByName("PlanetInfo"));
     planetInfoUIElements.push(advancedTexturePlanetInfo.getControlByName("ButtonBack"));
+    questionsUIElements.push(advancedTextureQuestions.getControlByName("QuestionText"));
+    questionsUIElements.push(advancedTextureQuestions.getControlByName("ButtonOp1"));
+    questionsUIElements.push(advancedTextureQuestions.getControlByName("TextblockOp1"));
+    questionsUIElements.push(advancedTextureQuestions.getControlByName("ButtonOp2"));
+    questionsUIElements.push(advancedTextureQuestions.getControlByName("TextblockOp2"));
+    questionsUIElements.push(advancedTextureQuestions.getControlByName("ButtonOp3"));
+    questionsUIElements.push(advancedTextureQuestions.getControlByName("TextblockOp3"));
+    questionsUIElements.push(advancedTextureQuestions.getControlByName("ButtonOp4"));
+    questionsUIElements.push(advancedTextureQuestions.getControlByName("TextblockOp4"));
+    questionsUIElements.push(advancedTextureQuestions.getControlByName("Background"));
+    questionsUIElements.push(advancedTextureQuestions.getControlByName("SliderFuel"));
+    questionsUIElements.push(advancedTextureQuestions.getControlByName("TextSliderFuel"));
+
 
 
     advancedTextureConfig.getControlByName("BackgroundImage").isVisible = false;
@@ -278,6 +323,8 @@ const onSceneReady = async (e = {engine: new BABYLON.Engine, scene: new BABYLON.
 
     console.log(configUIElements);
     console.log(mainUIElements);
+
+    let botonAcelerar = advancedTextureMain.getControlByName("Button");
 
     let botonClose = advancedTextureConfig.getControlByName("ButtonClose");
 
@@ -309,32 +356,120 @@ const onSceneReady = async (e = {engine: new BABYLON.Engine, scene: new BABYLON.
 
     let buttonBack = advancedTexturePlanetInfo.getControlByName("ButtonBack");
 
+    let planetInfo = advancedTexturePlanetInfo.getControlByName("PlanetInfo");
+
+    let fuelSlider = advancedTextureQuestions.getControlByName("SliderFuel");
+
+    let fuelSliderText = advancedTextureQuestions.getControlByName("TextSliderFuel");
+
+    let botonOp1 = advancedTextureQuestions.getControlByName("ButtonOp1");
+    let botonOp2 = advancedTextureQuestions.getControlByName("ButtonOp2");
+    let botonOp3 = advancedTextureQuestions.getControlByName("ButtonOp3");
+    let botonOp4 = advancedTextureQuestions.getControlByName("ButtonOp4");
+
     UI.hideUI(configUIElements);
     UI.hideUI(mainUIElements);
     UI.hideUI(planetInfoUIElements);
+    UI.hideUI(questionsUIElements);
     UI.showUI(textBoxUIElements);
     botonYes.isVisible = false;
     botonNo.isVisible = false;
-    dialogOn = true;
+    //dialogOn = true;
     backgroundStart.isVisible = false;
 
 
     let color = new BABYLON.Color3(1,1,1);
     let figura;
-    let enfoque;
+    let enfoque = nearPlanet;
     let objx;
     let objy;
     let objz;
 
 
-    scene.registerBeforeRender(function () {
+    scene.registerBeforeRender(async function () {
 
-        var deltaTimeInsecs = (scene.getEngine().getDeltaTime()) / 1000;
+        //Choosing which UI to show
+        switch (UIshown) {
+          case "main":
+            UI.hideUI(startScreenUIElements);
+            UI.showUI(mainUIElements);
+            UI.hideUI(configUIElements);
+            UI.hideUI(planetInfoUIElements);
+            UI.hideUI(questionsUIElements);
+            UI.hideUI(textBoxUIElements);  
+            console.log("UIshown: " + UIshown);
+            break;
+          
+          case "config":
+            UI.hideUI(startScreenUIElements);
+            UI.hideUI(mainUIElements);
+            UI.showUI(configUIElements);
+            UI.hideUI(planetInfoUIElements);
+            UI.hideUI(questionsUIElements);
+            UI.hideUI(textBoxUIElements);  
+            console.log("UIshown: " + UIshown);
+            break;
+
+          case "planetInfo":
+            UI.hideUI(startScreenUIElements);
+            UI.hideUI(mainUIElements);
+            UI.hideUI(configUIElements);
+            UI.showUI(planetInfoUIElements);
+            UI.hideUI(questionsUIElements);
+            UI.hideUI(textBoxUIElements);  
+            console.log("UIshown: " + UIshown);
+            break;
+
+          case "questions":
+            UI.hideUI(startScreenUIElements);
+            UI.hideUI(mainUIElements);
+            UI.hideUI(configUIElements);
+            UI.hideUI(planetInfoUIElements);
+            UI.showUI(questionsUIElements);
+            UI.hideUI(textBoxUIElements);  
+            console.log("UIshown: " + UIshown);
+            break;
+
+          case "textBox":
+            UI.hideUI(startScreenUIElements);
+            UI.hideUI(mainUIElements);
+            UI.hideUI(configUIElements);
+            UI.hideUI(planetInfoUIElements);
+            UI.hideUI(questionsUIElements);
+            UI.showUI(textBoxUIElements);  
+            console.log("UIshown: " + UIshown);
+            break;
+
+          case "startScreen":
+            UI.showUI(startScreenUIElements);
+            UI.hideUI(mainUIElements);
+            UI.hideUI(configUIElements);
+            UI.hideUI(planetInfoUIElements);
+            UI.hideUI(questionsUIElements);
+            UI.showUI(textBoxUIElements);  
+            console.log("UIshown: " + UIshown);
+            break;
+        
+          default:
+            UI.showUI(startScreenUIElements);
+            UI.hideUI(mainUIElements);
+            UI.hideUI(configUIElements);
+            UI.hideUI(planetInfoUIElements);
+            UI.hideUI(questionsUIElements);
+            UI.hideUI(textBoxUIElements);   
+            console.log("UIshown: " + UIshown);
+            break;
+        }
+
+
+        var deltaTimeInsecs = (scene.getEngine
+          ().getDeltaTime()) / 1000;
         elapsedTime += deltaTimeInsecs;
         if(elapsedTime >= .1){
           var alphaVisible = true;
           var direction = camera.getDirection(BABYLON.Axis.Z);
-          movedKM += camController.calculateDistance(camera.position,lastPosition);
+          if(planet == null)
+            movedKM += camController.calculateDistance(camera.position,lastPosition);
           kmTextBlock.text = "Kilometros recorridos: " + movedKM.toFixed(2)
           lastPosition.x = camera.position.x;
           lastPosition.y = camera.position.y;
@@ -342,18 +477,16 @@ const onSceneReady = async (e = {engine: new BABYLON.Engine, scene: new BABYLON.
           elapsedTime = 0;
           if(moving == true){
             if(acceleration < 100){
-              console.log("acelerando")
               acceleration += 1;
             } 
           fuel -= 1;
           fuelTextBlock.text = "Combustible restante: " + fuel;
           } else {
             if(acceleration > 0){
-              console.log("desacelerando")
               acceleration -= 1;
             }
             }
-            camera.position.addInPlace(direction.scale(1*acceleration));
+            camera.position.addInPlace(direction.scale(0.1*acceleration));
 
             //console.log("alpha: " + clickText.alpha)
           if(alphaVisible == true){
@@ -365,7 +498,103 @@ const onSceneReady = async (e = {engine: new BABYLON.Engine, scene: new BABYLON.
             }
           }
         }
-/*
+
+        if(fuel <= 0 && UIshown == "main"){
+          fuel = 0;
+          dialogText.text = "Te has quedado sin combustible, para recargar deberás responder una pregunta";
+          UIshown = "textBox";
+        }
+
+        
+        if(visitedPlanets.length >=1 && movedKM >= (neededKmToTest - 450) && !partOneAnswered && UIshown !== "planetInfo" && nearPlanet == null){
+          testOneAvailable = true;
+          //console.log("Preguntas test 1")
+          dialogText.text = "Has visitado los planetas rocosos, ¿Quieres responder un test para desbloquear los planetas gaseosos?"
+          UIshown = "textBox";
+          UI.showUI(confirmButtonsUIElements)
+          clickText.isVisible = false;
+        }
+  
+        if(showingQuestionPartOne){
+          //console.log("Mostrando pregunta test 1")
+          fuelSlider.isVisible = false;
+          fuelSliderText.isVisible = false;
+          UIshown = "questions";
+          if(!questionShown){
+            console.log("Mostrando pregunta test 1")
+            while(true){
+            question = Questions_Module.showQuestion(visitedPlanets, advancedTextureQuestions, scene);
+            var questionInArray = false;
+            shownQuestions.forEach(shownquestion => {
+              if(shownquestion == question)
+                questionInArray = true;
+            });
+            if(!questionInArray)
+              break;
+            }
+            shownQuestions.push(question);
+            console.log(shownQuestions)
+          }
+          questionShown = true;
+        }
+
+        if(correctAnswers >= 3 && !partOneAnswered && shownQuestions.length >= 5){
+          showingQuestionPartOne = false;
+          console.log("Preguntas test 1 respondidas")
+          partOneAnswered = true;
+          dialogText.text = "Has desbloqueado los planetas gaseosos, ¡Sigue explorando!"
+          UIshown = "textBox";
+          UI.hideUI(confirmButtonsUIElements);
+          incorrectAnswers = 0;
+          correctAnswers = 0;
+        } else if(correctAnswers < 3 && !partOneAnswered && shownQuestions.length >= 5){
+          showingQuestionPartOne = false;
+          console.log("Preguntas test 1 respondidas")
+          partOneAnswered = true;
+          dialogText.text = "No has desbloqueado los planetas gaseosos, ¡Sigue explorando!"
+          UIshown = "textBox";
+          UI.hideUI(confirmButtonsUIElements);
+          visitedPlanets = [];
+          neededKmToTest += 500;
+          shownQuestions = [];
+          incorrectAnswers = 0;
+          correctAnswers = 0;
+        }
+//TODO: ShownQuestions para registrar que se respondieron las preguntas
+        if(shownQuestions.length == 5 && showingQuestionFuel){
+          console.log("Preguntas test 1 respondidas")
+          showingQuestionFuel = false;
+          UIshown = "main";
+          incorrectAnswers = 0;
+          shownQuestions = [];
+          correctAnswers = 0;
+        }
+
+        fuelSlider.value = fuel;
+        fuelSliderText.text = "Combustible: " + fuel + " %";
+
+        if(showingQuestionFuel){
+          UIshown = "questions";
+          UI.hideUI(confirmButtonsUIElements);
+          if(!questionShown){
+            console.log("Mostrando pregunta test combustible")
+            while(true){
+            question = Questions_Module.showQuestion(visitedPlanets, advancedTextureQuestions, scene);
+            var questionInArray = false;
+            shownQuestions.forEach(shownquestion => {
+              if(shownquestion == question)
+                questionInArray = true;
+            });
+            if(!questionInArray)
+              break;
+            }
+            shownQuestions.push(question);
+            console.log(shownQuestions)
+          }
+          questionShown = true;
+        } 
+
+      /*
         if(elapsedTime >= .1){
           robotImage.source = wavingGIFElements[wavingGifIndex]
           wavingGifIndex += 1;
@@ -375,18 +604,39 @@ const onSceneReady = async (e = {engine: new BABYLON.Engine, scene: new BABYLON.
           }
         }*/
         
-        if(camController.calculateDistance(camera.position,tierra.position) <= 100 && planet != tierra){
-          dialogText.text = "Estas en la tierra, ¿deseas anclarte a su órbita?"
-          UI.showUI(textBoxUIElements);
-          botonYes.isVisible = true;
-          botonNo.isVisible = true;
+        planets.forEach((planet) => {
+          var planetDistance = camController.calculateDistance(camera.position, planet.position);
+          if(planetDistance <= (10 + planet.diameter)) {
+              nearPlanet = planet;
+          } else if (nearPlanet == planet){
+            nearPlanet = null;
+          }
+        });
+
+        if(nearPlanet !== null && UIshown == "main"){
+          dialogText.text = "Estas en el planeta: " +  nearPlanet.name +", ¿deseas anclarte a su órbita?"
+          anchored = true;
+          UIshown = "textBox";
+          UI.showUI(confirmButtonsUIElements);
           clickText.isVisible = false;
-          UI.hideUI(mainUIElements);
-          console.log("Estas en la tierra")
+          showingPlanetAnchor = true;
+        } else if(nearPlanet == null && UIshown == "textBox" && !testOneAvailable && fuel > 0){
+          UIshown = "main";
+          UI.hideUI(confirmButtonsUIElements);
+          showingPlanetAnchor = false;
         }
+        /*else if (started && fuel > 0 && !testOneAvailable){
+          console.log("Hiding text box UI")
+          botonYes.isVisible = false;
+          botonNo.isVisible = false;
+          UI.hideUI(textBoxUIElements);
+        } else {
+          UI.hideUI(mainUIElements);
+          UI.showUI(startScreenUIElements);
+        }*/
         
         if(planet != null){
-          camController.followPlanet(camera,planet);
+          camController.followPlanet(camera,planet,scene);
         }
         
         //Rotación de los planetas
@@ -441,10 +691,20 @@ const onSceneReady = async (e = {engine: new BABYLON.Engine, scene: new BABYLON.
    // --------------------- COLOR PICKER --------------------- 
   scene.onPointerObservable.add((pointerInfo) => {
   if(pointerInfo.type == BABYLON.PointerEventTypes.POINTERDOWN){
-      if(dialogOn == true){
-      UI.hideUI(textBoxUIElements);
-      UI.showUI(mainUIElements);
-      dialogOn = false;
+      if(UIshown == "startScreen"){
+        UIshown = "main";
+        //dialogOn = false;
+        started = true;
+        console.log("System ready")
+      }
+      if(fuel <= 0 && UIshown == "textBox"){
+        fuel = 0;
+        console.log("Fuel empty, showing questions")
+        showingQuestionFuel = true;
+        console.log("Showing question: " + showingQuestionFuel)
+      }
+      if(partOneAnswered && UIshown == "textBox"){
+        UIshown = "main";
       }
   }
 }); 
@@ -466,29 +726,76 @@ const onSceneReady = async (e = {engine: new BABYLON.Engine, scene: new BABYLON.
     });
     
     botonYes.onPointerClickObservable.add(() => {
-      camera.position.x = tierra.position.x + 10;
-      camera.position.y = tierra.position.y + 10;
-      camera.position.z = tierra.position.z + 10;
-      UI.hideUI(textBoxUIElements);
-      console.log("text UI hidden")
-      UI.showUI(planetInfoUIElements);
-      console.log("main UI shown")
-      botonYes.isVisible = false;
-      botonNo.isVisible = false;
-      planet = tierra;
+      if(UIshown == "textBox" && nearPlanet !== null && nearPlanet !== undefined){
+        camera.position.x = nearPlanet.position.x + 10;
+        camera.position.y = nearPlanet.position.y + 10;
+        camera.position.z = nearPlanet.position.z + 10;
+        camera.setTarget(nearPlanet.position);
+        UIshown = "planetInfo";
+        planet = nearPlanet;
+        UI.hideUI(confirmButtonsUIElements);
+        switch (nearPlanet) {
+          case mercurio:
+            planetInfo.source = "https://i.imgur.com/l85D4oE.png"
+            break;
+          case venus:
+            planetInfo.source = "https://i.imgur.com/Fz1YmOe.png"
+            break;
+          case tierra:
+            planetInfo.source = "https://i.imgur.com/qEpz91f.png"
+            break;
+          case marte:
+            planetInfo.source = "https://i.imgur.com/Nphj8GI.png"
+            break;
+          case jupiter:
+            planetInfo.source = "https://i.imgur.com/KX8rAre.png"
+            break;
+          case saturno:
+            planetInfo.source = "https://i.imgur.com/yxB9HH5.png"
+            break;
+          case urano:
+            planetInfo.source = "https://i.imgur.com/1Oxnj4D.png"
+            break;
+          case neptuno:
+            planetInfo.source = "https://i.imgur.com/Wwr2CvT.png"
+            break;
+          default:
+            break;
+        }
+      
+      //planetInfo.isVisible = true;
+      if(!visitedPlanets.includes(planet)){
+        visitedPlanets.push(planet);
+      }
+      console.log(visitedPlanets)
+      showingPlanetAnchor = true;
+    }
 
+      if(testOneAvailable && nearPlanet == null){
+        console.log("Test one available")
+        //dialogOn = false;
+        showingQuestionPartOne = true;
+      }
+
+    });
+
+    botonNo.onPointerClickObservable.add(() => {
+      UIshown = "main";
+
+      if(testOneAvailable){
+        neededKmToTest = neededKmToTest + 100;
+      }
+      showingPlanetAnchor = false;
     });
 
     botonConfig.onPointerClickObservable.add(() => {
       console.log("Configurar");
-      UI.showUI(configUIElements);
-      UI.hideUI(mainUIElements);
+      UIshown = "config";
     });
 
     botonClose.onPointerClickObservable.add(() => {
       console.log("Cerrar");
-      UI.showUI(mainUIElements);
-      UI.hideUI(configUIElements);
+      UIshown = "main";
     });
 
     sliderSize.onValueChangedObservable.add((value) => {
@@ -509,12 +816,78 @@ const onSceneReady = async (e = {engine: new BABYLON.Engine, scene: new BABYLON.
 
     buttonBack.onPointerClickObservable.add(() => {
       console.log("Back");
-      UI.showUI(mainUIElements);
-      UI.hideUI(planetInfoUIElements);
+      UIshown = "main";
       planet = null;
     });
 
-    
+    botonOp1.onPointerClickObservable.add(() => {
+      console.log("Op1");
+      if (question.correct == 0) {
+        console.log("Correct")
+        fuel += 10;
+        if(showingQuestionPartOne){
+        correctAnswers += 1;
+        }
+        questionShown = false;
+      } else {
+        console.log("Incorrect");
+        questionShown = false;
+        incorrectAnswers += 1;
+        console.log(incorrectAnswers)
+      }
+    });
+
+    botonOp2.onPointerClickObservable.add(() => {
+      console.log("Op2");
+      if (question.correct == 1) {
+        console.log("Correct")
+        fuel += 10;
+        if(showingQuestionPartOne){
+        correctAnswers += 1;
+        }
+        questionShown = false;
+      } else {
+        console.log("Incorrect");
+        questionShown = false;
+        incorrectAnswers += 1;
+        console.log(incorrectAnswers)
+      }
+    });
+
+    botonOp3.onPointerClickObservable.add(() => {
+      console.log("Op3");
+      if (question.correct == 2) {
+        console.log("Correct")
+        fuel += 10;
+        if(showingQuestionPartOne){
+        correctAnswers += 1;
+        }
+       questionShown = false;
+      } else {
+        console.log("Incorrect");
+        questionShown = false;
+        incorrectAnswers += 1;
+        console.log(incorrectAnswers)
+      }
+    });
+
+
+    botonOp4.onPointerClickObservable.add(() => {
+      console.log("Op4");
+      if (question.correct == 3) {
+        console.log("Correct")
+        fuel += 10;
+        if(showingQuestionPartOne){
+        correctAnswers += 1;
+        }
+        questionShown = false;
+      } else {
+        console.log("Incorrect");
+        questionShown = false;
+        incorrectAnswers += 1;
+        console.log(incorrectAnswers)
+      }
+    });
 
     sliderFigura.onValueChangedObservable.add((value) => {
       console.log("Valor: " + value);
@@ -529,13 +902,6 @@ const onSceneReady = async (e = {engine: new BABYLON.Engine, scene: new BABYLON.
       }
     });
 
-    scene.onPointerObservable.add((pointerInfo) => {
-      if(pointerInfo.pickInfo.hit){
-        console.log("Picked mesh: " + pointerInfo.pickInfo.pickedMesh.name);
-        figura = pointerInfo.pickInfo.pickedMesh;
-      }
-    });
-
     scene.onBeforeRenderObservable.add(() => {
         if(enfoque != null){
           camera.setTarget(enfoque.position);
@@ -545,13 +911,15 @@ const onSceneReady = async (e = {engine: new BABYLON.Engine, scene: new BABYLON.
     scene.onKeyboardObservable.add((kbInfo) => {
       if (kbInfo.type === BABYLON.KeyboardEventTypes.KEYDOWN) {
         if(kbInfo.event.key === " "){
-          moving = true;
-          accelerator.children[0].isVisible = false;
-          accelerator.children[1].isVisible = true;
-          //var direction = camera.getDirection(BABYLON.Axis.Z);
-          //camera.position.addInPlace(direction.scale(1*acceleration));
-          //movedKM += 1;
-          //console.log(movedKM)
+          if(fuel>0){
+            moving = true;
+            accelerator.children[0].isVisible = false;
+            accelerator.children[1].isVisible = true;
+            //var direction = camera.getDirection(BABYLON.Axis.Z);
+            //camera.position.addInPlace(direction.scale(1*acceleration));
+            //movedKM += 1;
+            //console.log(movedKM)
+            }
           }
         }
       if (kbInfo.type === BABYLON.KeyboardEventTypes.KEYUP){
@@ -568,13 +936,25 @@ const onSceneReady = async (e = {engine: new BABYLON.Engine, scene: new BABYLON.
       }
       });
 
+        botonAcelerar.onPointerDownObservable.add((pointerInfo) => {
+        if(fuel>0){
+          moving = true;
+          accelerator.children[0].isVisible = false;
+          accelerator.children[1].isVisible = true;
+          }
+        });
+
+        botonAcelerar.onPointerUpObservable.add((pointerInfo) => {
+          moving = false;
+          accelerator.children[0].isVisible = true;
+          accelerator.children[1].isVisible = false;
+          });
+
 
      const XR_experience = XR_Module.XR_Experience(playground.ground, skybox, scene);
-}
-
-function Degrees_to_radians(degrees) {
-    var pi = Math.PI;
-    return degrees * (pi/180);
+     //const XR_experienceReturns = XR_Module.XR_Experience(playground.ground, skybox, camera, scene);
+     //const XR_experience = XR_experienceReturns[0];
+     //camera = XR_experienceReturns;
 }
 
 

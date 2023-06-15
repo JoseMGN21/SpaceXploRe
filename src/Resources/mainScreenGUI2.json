@@ -535,7 +535,7 @@
                 "tags": null,
                 "resizeToFit": true,
                 "textWrapping": 0,
-                "text": "Combustible restante:",
+                "text": "Combustible restante: 10000",
                 "textHorizontalAlignment": 2,
                 "textVerticalAlignment": 2,
                 "lineSpacing": "0px",

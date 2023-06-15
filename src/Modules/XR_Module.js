@@ -5,6 +5,7 @@ import * as GUI from "babylonjs-gui";
    * Module to start XR functionalities (with auto XR mode detection).
    * @param {BABYLON.Mesh} ground the instanced babylon js ground.
    * @param {BABYLON.Mesh} skybox the instanced babylon js skybox.
+   * @param {BABYLON.Camera} camera the instanced babylon js camera.
    * @param {BABYLON.Scene} scene the instanced babylon js scene.
    * @returns the promised XR default experience instance.
    */
@@ -111,7 +112,7 @@ export async function XR_Experience(ground, skybox, scene) {
                     case BABYLON.WebXRState.NOT_IN_XR:
                         // self explanatory - either out or not yet in XR
                         if (ground) {
-                            ground.visibility = 1;
+                            ground.visibility = 0;
                         }
                         if (skybox) {
                             skybox.isVisible = true;
@@ -155,7 +156,7 @@ export async function XR_Experience(ground, skybox, scene) {
         });
         advancedTextureFullScreen.addControl(button1);
 
-
+/*
         // GUI
         var meshGUI = BABYLON.MeshBuilder.CreatePlane("plane", {
             width: 1 * 1.8,
@@ -198,7 +199,27 @@ export async function XR_Experience(ground, skybox, scene) {
         advancedTexture.addControl(button1);
 
         meshGUI.position.addInPlaceFromFloats(0, 2, 0);
+        */
 
+
+
+
+
+        /*
+        // Create a WebXR session manager
+        const xrSessionManager = new BABYLON.WebXRSessionManager(scene);
+
+        // Create a WebXR camera
+
+        const xrCamera = new BABYLON.WebXRCamera("nameOfCamera", scene, xrSessionManager);
+
+        // if scene.activeCamera is still the non-VR camera:
+        xrCamera.setTransformationFromNonVRCamera();
+
+        // Otherwise, provide the non-vr camera to copy the transformation from:
+
+        xrCamera.setTransformationFromNonVRCamera(camera);
+*/
 
         console.log("Se ha cargado funciones XR satisfactoriamente.");
         return xrExperience;

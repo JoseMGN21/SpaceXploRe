@@ -11,25 +11,48 @@ import * as materiales from '../Modules/Materials_Module.js';
  * @returns {BABYLON.Mesh} The instanced mesh of the planet.
  */
 export function planetCreate(diameter, texture, planetName, position, rotation, scene) {
-    if(planetName == "sun"){
-        var sun = BABYLON.MeshBuilder.CreateSphere(planetName, {diameter: diameter}, scene);
-        sun.position = position;
-        sun.material = materiales.MaterialFromTexture(planetName+"Texture", {diffuseTexture: texture}, scene);
-        sun.material.emissiveColor = new BABYLON.Color3(1,1,1);
-        sun.light = new BABYLON.PointLight("luzSol", new BABYLON.Vector3(0,0,0), scene);
-        sun.light.intensity = 1;
-        sun.checkCollisions = true;
-        console.log(sun.position)
-        return sun;
-    }
-    else {
-        var planet = BABYLON.MeshBuilder.CreateSphere(planetName, {diameter: diameter}, scene);
-        planet.position = position;
-        planet.material = materiales.MaterialFromTexture(planetName+"texture", {diffuseTexture: texture}, scene);
-        planet.checkCollisions = true;
-        planet.rotation.z = Degrees_to_radians(rotation);
-        console.log(planet.position)
-        return planet;
+    switch (planetName) {
+        case "sun":
+            var sun = BABYLON.MeshBuilder.CreateSphere(planetName, {diameter: diameter}, scene);
+            sun.position = position;
+            sun.material = materiales.MaterialFromTexture(planetName+"Texture", {diffuseTexture: texture}, scene);
+            sun.material.emissiveColor = new BABYLON.Color3(1,1,1);
+            sun.light = new BABYLON.PointLight("luzSol", new BABYLON.Vector3(0,0,0), scene);
+            sun.light.intensity = 1;
+            sun.checkCollisions = true;
+            sun.diameter = diameter;
+            console.log(sun.position)
+            return sun;
+            break;
+        case "saturnRings":
+            var anillosSaturno = BABYLON.MeshBuilder.CreateTorus(planetName, {diameter: diameter, thickness: 8 * 5}, scene);
+            anillosSaturno.position.set(0,0,0);
+            anillosSaturno.material = materiales.MaterialFromTexture(planetName+"Texture", {diffuseTexture: texture}, scene);
+            anillosSaturno.material.hasAlpha = true;
+            anillosSaturno.checkCollisions = true;
+            anillosSaturno.scaling = new BABYLON.Vector3(1,.0001,1);
+            anillosSaturno.material.emissiveColor = new BABYLON.Color3(0.5,0.5,0.5);
+            return anillosSaturno;
+            break;
+        case "moon":
+            var moon = BABYLON.MeshBuilder.CreateSphere(planetName, {diameter: diameter}, scene);
+            moon.position.set(0,0,0);
+            moon.material = materiales.MaterialFromTexture(planetName+"texture", {diffuseTexture: texture}, scene);
+            moon.checkCollisions = true;
+            moon.rotation.z = Degrees_to_radians(rotation);
+            console.log(moon.position)
+            moon.diameter = diameter;
+            return moon;
+        default:
+            var planet = BABYLON.MeshBuilder.CreateSphere(planetName, {diameter: diameter}, scene);
+            planet.position = position;
+            planet.material = materiales.MaterialFromTexture(planetName+"texture", {diffuseTexture: texture}, scene);
+            planet.checkCollisions = true;
+            planet.rotation.z = Degrees_to_radians(rotation);
+            console.log(planet.position)
+            planet.diameter = diameter;
+            return planet;
+            break;
     }
 }
 
