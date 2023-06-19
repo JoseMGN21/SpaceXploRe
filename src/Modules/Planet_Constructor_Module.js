@@ -21,7 +21,6 @@ export function planetCreate(diameter, texture, planetName, position, rotation, 
             sun.light.intensity = 1;
             sun.checkCollisions = true;
             sun.diameter = diameter;
-            console.log(sun.position)
             return sun;
             break;
         case "saturnRings":
@@ -40,7 +39,6 @@ export function planetCreate(diameter, texture, planetName, position, rotation, 
             moon.material = materiales.MaterialFromTexture(planetName+"texture", {diffuseTexture: texture}, scene);
             moon.checkCollisions = true;
             moon.rotation.z = Degrees_to_radians(rotation);
-            console.log(moon.position)
             moon.diameter = diameter;
             return moon;
         default:
@@ -49,7 +47,6 @@ export function planetCreate(diameter, texture, planetName, position, rotation, 
             planet.material = materiales.MaterialFromTexture(planetName+"texture", {diffuseTexture: texture}, scene);
             planet.checkCollisions = true;
             planet.rotation.z = Degrees_to_radians(rotation);
-            console.log(planet.position)
             planet.diameter = diameter;
             return planet;
             break;

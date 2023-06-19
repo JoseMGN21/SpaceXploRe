@@ -9,11 +9,12 @@ import * as GUI from "babylonjs-gui";
    * @param {BABYLON.Scene} scene the instanced babylon js scene.
    * @returns the promised XR default experience instance.
    */
-export async function XR_Experience(ground, skybox, scene) {
+export async function XR_Experience(ground, skybox,camera, scene) {
 
 
     let inmersive_state = "inline";
     let reference_floor = "local-floor"
+    let ARenabled = false;
 
     let avaliableVR = await BABYLON.WebXRSessionManager.IsSessionSupportedAsync("immersive-vr");
     let avaliableAR = await BABYLON.WebXRSessionManager.IsSessionSupportedAsync("immersive-ar");
@@ -21,6 +22,15 @@ export async function XR_Experience(ground, skybox, scene) {
 
     console.log("AR mode avaliable: " + avaliableAR);
     console.log("VR mode avaliable: " + avaliableVR);
+
+     // Create a WebXR session manager
+     const xrSessionManager = new BABYLON.WebXRSessionManager(scene);
+
+     // Create a WebXR camera
+
+     const xrCamera = new BABYLON.WebXRCamera("cameraXR", scene, xrSessionManager);
+
+     
 
     if (avaliableVR) {
 
@@ -147,9 +157,16 @@ export async function XR_Experience(ground, skybox, scene) {
 
                 xrExperience.baseExperience.enterXRAsync(inmersive_state, reference_floor);
 
+                xrCamera.setTransformationFromNonVRCamera(camera);
+
+                xrCamera.position = camera.position;
+
+                ARenabled = true;
+
             } else if (xrExperience.baseExperience.state === BABYLON.WebXRState.IN_XR) {
 
                 xrExperience.baseExperience.exitXRAsync();
+                ARenabled = false;
             }
 
 
@@ -205,24 +222,15 @@ export async function XR_Experience(ground, skybox, scene) {
 
 
 
-        /*
-        // Create a WebXR session manager
-        const xrSessionManager = new BABYLON.WebXRSessionManager(scene);
+        
+       
+        console.log("En XR_Module",xrCamera);
+        
 
-        // Create a WebXR camera
-
-        const xrCamera = new BABYLON.WebXRCamera("nameOfCamera", scene, xrSessionManager);
-
-        // if scene.activeCamera is still the non-VR camera:
-        xrCamera.setTransformationFromNonVRCamera();
-
-        // Otherwise, provide the non-vr camera to copy the transformation from:
-
-        xrCamera.setTransformationFromNonVRCamera(camera);
-*/
 
         console.log("Se ha cargado funciones XR satisfactoriamente.");
-        return xrExperience;
+        
+        return {xrSessionManager, xrCamera, ARenabled};
         
     })
 

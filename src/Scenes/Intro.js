@@ -90,6 +90,11 @@ const onSceneReady = async (e = {engine: new BABYLON.Engine, scene: new BABYLON.
     let questionShown = false;
     let showingPlanetAnchor = false;
 
+    var ARenabled = false;
+    var xrCamera = null;
+
+    let XR_experienceReturns = null;
+
     //const assetsManager = new BABYLON.AssetsManager(scene);
 
 
@@ -189,7 +194,6 @@ const onSceneReady = async (e = {engine: new BABYLON.Engine, scene: new BABYLON.
     var neptuno = planetConstructor.planetCreate(3.883 * 5, texturaNeptuno, "neptune", new BABYLON.Vector3(70,0,0), 28, scene);
     planets.push(neptuno);
     secondSceneContainer.meshes.push(neptuno);
-    console.log(planets);
 
     var ua = 117.26846553048;
 
@@ -211,8 +215,6 @@ const onSceneReady = async (e = {engine: new BABYLON.Engine, scene: new BABYLON.
     orbits.push(orbitaUrano.orbit);
     var orbitaNeptuno = planetConstructor.orbitCreate("neptuno", 30.06, ua, 60148 * 5, 1.77, scene);
     orbits.push(orbitaNeptuno.orbit);
-    console.log(orbits);
-
     mercurio.parent = orbitaMercurio.orbit;
     var movimientoMercurio = 0;
     venus.parent = orbitaVenus.orbit;
@@ -321,9 +323,6 @@ const onSceneReady = async (e = {engine: new BABYLON.Engine, scene: new BABYLON.
     let botonConfig = advancedTextureMain.getControlByName("BotonConfig");
     botonConfig.isVisible = true;
 
-    console.log(configUIElements);
-    console.log(mainUIElements);
-
     let botonAcelerar = advancedTextureMain.getControlByName("Button");
 
     let botonClose = advancedTextureConfig.getControlByName("ButtonClose");
@@ -385,6 +384,7 @@ const onSceneReady = async (e = {engine: new BABYLON.Engine, scene: new BABYLON.
     let objy;
     let objz;
 
+    var {xrSessionManager, xrCamera, ARenabled} = await XR_Module.XR_Experience(playground.ground, skybox, camera, scene);
 
     scene.registerBeforeRender(async function () {
 
@@ -396,8 +396,7 @@ const onSceneReady = async (e = {engine: new BABYLON.Engine, scene: new BABYLON.
             UI.hideUI(configUIElements);
             UI.hideUI(planetInfoUIElements);
             UI.hideUI(questionsUIElements);
-            UI.hideUI(textBoxUIElements);  
-            console.log("UIshown: " + UIshown);
+            UI.hideUI(textBoxUIElements);
             break;
           
           case "config":
@@ -406,8 +405,7 @@ const onSceneReady = async (e = {engine: new BABYLON.Engine, scene: new BABYLON.
             UI.showUI(configUIElements);
             UI.hideUI(planetInfoUIElements);
             UI.hideUI(questionsUIElements);
-            UI.hideUI(textBoxUIElements);  
-            console.log("UIshown: " + UIshown);
+            UI.hideUI(textBoxUIElements);
             break;
 
           case "planetInfo":
@@ -416,8 +414,7 @@ const onSceneReady = async (e = {engine: new BABYLON.Engine, scene: new BABYLON.
             UI.hideUI(configUIElements);
             UI.showUI(planetInfoUIElements);
             UI.hideUI(questionsUIElements);
-            UI.hideUI(textBoxUIElements);  
-            console.log("UIshown: " + UIshown);
+            UI.hideUI(textBoxUIElements);
             break;
 
           case "questions":
@@ -426,8 +423,7 @@ const onSceneReady = async (e = {engine: new BABYLON.Engine, scene: new BABYLON.
             UI.hideUI(configUIElements);
             UI.hideUI(planetInfoUIElements);
             UI.showUI(questionsUIElements);
-            UI.hideUI(textBoxUIElements);  
-            console.log("UIshown: " + UIshown);
+            UI.hideUI(textBoxUIElements);
             break;
 
           case "textBox":
@@ -436,8 +432,7 @@ const onSceneReady = async (e = {engine: new BABYLON.Engine, scene: new BABYLON.
             UI.hideUI(configUIElements);
             UI.hideUI(planetInfoUIElements);
             UI.hideUI(questionsUIElements);
-            UI.showUI(textBoxUIElements);  
-            console.log("UIshown: " + UIshown);
+            UI.showUI(textBoxUIElements);
             break;
 
           case "startScreen":
@@ -446,8 +441,7 @@ const onSceneReady = async (e = {engine: new BABYLON.Engine, scene: new BABYLON.
             UI.hideUI(configUIElements);
             UI.hideUI(planetInfoUIElements);
             UI.hideUI(questionsUIElements);
-            UI.showUI(textBoxUIElements);  
-            console.log("UIshown: " + UIshown);
+            UI.showUI(textBoxUIElements);
             break;
         
           default:
@@ -456,16 +450,16 @@ const onSceneReady = async (e = {engine: new BABYLON.Engine, scene: new BABYLON.
             UI.hideUI(configUIElements);
             UI.hideUI(planetInfoUIElements);
             UI.hideUI(questionsUIElements);
-            UI.hideUI(textBoxUIElements);   
-            console.log("UIshown: " + UIshown);
+            UI.hideUI(textBoxUIElements);
             break;
         }
 
-
-        var deltaTimeInsecs = (scene.getEngine
-          ().getDeltaTime()) / 1000;
+        if(ARenabled){
+          xrCamera.position = camera.position;
+        }
+        var deltaTimeInsecs = (scene.getEngine().getDeltaTime()) / 1000;
         elapsedTime += deltaTimeInsecs;
-        if(elapsedTime >= .1){
+        if(elapsedTime >= .1 && !ARenabled){
           var alphaVisible = true;
           var direction = camera.getDirection(BABYLON.Axis.Z);
           if(planet == null)
@@ -488,11 +482,39 @@ const onSceneReady = async (e = {engine: new BABYLON.Engine, scene: new BABYLON.
             }
             camera.position.addInPlace(direction.scale(0.1*acceleration));
 
-            //console.log("alpha: " + clickText.alpha)
           if(alphaVisible == true){
             clickText.alpha -= 0.1;
             if(clickText.alpha <= 0){
-              //console.log("invisible")
+              alphaVisible = false;
+              clickText.alpha = 0.9;
+            }
+          }
+        } else if(elapsedTime >= .1 && ARenabled){
+          var alphaVisible = true;
+          var direction = xrCamera.getDirection(BABYLON.Axis.Z);
+          if(planet == null)
+            movedKM += camController.calculateDistance(xrCamera.position,lastPosition);
+          kmTextBlock.text = "Kilometros recorridos: " + movedKM.toFixed(2)
+          lastPosition.x = xrCamera.position.x;
+          lastPosition.y = xrCamera.position.y;
+          lastPosition.z = xrCamera.position.z;
+          elapsedTime = 0;
+          if(moving == true){
+            if(acceleration < 100){
+              acceleration += 1;
+            } 
+          fuel -= 1;
+          fuelTextBlock.text = "Combustible restante: " + fuel;
+          } else {
+            if(acceleration > 0){
+              acceleration -= 1;
+            }
+            }
+            camera.position.addInPlace(direction.scale(0.1*acceleration));
+
+          if(alphaVisible == true){
+            clickText.alpha -= 0.1;
+            if(clickText.alpha <= 0){
               alphaVisible = false;
               clickText.alpha = 0.9;
             }
@@ -687,11 +709,21 @@ const onSceneReady = async (e = {engine: new BABYLON.Engine, scene: new BABYLON.
         movimientoUrano = (movimientoUrano + 1) % (orbitaUrano.orbitPoints.length - 1)
         movimientoNeptuno = (movimientoNeptuno + 1) % (orbitaNeptuno.orbitPoints.length - 1)
     });
+    
+  
 
    // --------------------- COLOR PICKER --------------------- 
   scene.onPointerObservable.add((pointerInfo) => {
   if(pointerInfo.type == BABYLON.PointerEventTypes.POINTERDOWN){
       if(UIshown == "startScreen"){
+        //XR_experienceReturns = XR_Module.XR_Experience(playground.ground, skybox, camera, scene);
+        // Create a WebXR session manager
+        // Create a WebXR camera
+   
+        console.log("En Observable",xrCamera)
+        console.log(ARenabled)
+
+
         UIshown = "main";
         //dialogOn = false;
         started = true;
@@ -938,23 +970,38 @@ const onSceneReady = async (e = {engine: new BABYLON.Engine, scene: new BABYLON.
 
         botonAcelerar.onPointerDownObservable.add((pointerInfo) => {
         if(fuel>0){
+          console.log(xrCamera.position)
+          xrCamera.position.addInPlace(xrCamera.getDirection(BABYLON.Axis.Z).scale(1*acceleration));
+          console.log(xrCamera.position)
           moving = true;
           accelerator.children[0].isVisible = false;
           accelerator.children[1].isVisible = true;
           }
         });
 
+        
         botonAcelerar.onPointerUpObservable.add((pointerInfo) => {
           moving = false;
           accelerator.children[0].isVisible = true;
           accelerator.children[1].isVisible = false;
           });
 
-
-     const XR_experience = XR_Module.XR_Experience(playground.ground, skybox, scene);
+/*
      //const XR_experienceReturns = XR_Module.XR_Experience(playground.ground, skybox, camera, scene);
-     //const XR_experience = XR_experienceReturns[0];
-     //camera = XR_experienceReturns;
+     if(XR_experienceReturns != null){
+      
+      // Create a WebXR session manager
+      const xrSessionManager = XR_experienceReturns[1];
+
+      // Create a WebXR camera
+
+      const xrCamera = XR_experienceReturns[2];
+      console.log(xrCamera)
+
+      ARenabled = XR_experienceReturns[3];
+      console.log(ARenabled)
+     }
+     */
 }
 
 
