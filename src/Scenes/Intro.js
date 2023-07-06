@@ -384,9 +384,14 @@ const onSceneReady = async (e = {engine: new BABYLON.Engine, scene: new BABYLON.
     let objy;
     let objz;
 
-    var {xrSessionManager, xrCamera, ARenabled} = await XR_Module.XR_Experience(playground.ground, skybox, camera, scene);
+    var {xrExperience, xrCamera, ARenabled} = await XR_Module.XR_Experience(playground.ground, skybox, camera, scene);
 
     scene.registerBeforeRender(async function () {
+      if (xrExperience.baseExperience.state === BABYLON.WebXRState.IN_XR) {
+        //<console.log("in xr");
+      }
+
+
 
         //Choosing which UI to show
         switch (UIshown) {
@@ -711,7 +716,25 @@ const onSceneReady = async (e = {engine: new BABYLON.Engine, scene: new BABYLON.
     });
     
   
+    
 
+    xrExperience.baseExperience.sessionManager.onXRSessionInit.add((xrSession) => {
+      console.log("En XRSessionInit")
+      xrCamera.setTransformationFromNonVRCamera(camera);
+
+      xrCamera.position = camera.position;
+
+      console.log("Camara xr en XRSessionInit", xrCamera)
+
+      console.log("Camara normal en XRSession: ", camera)
+
+      console.log("xrCamera.camera position ",xrCamera.camera);
+    
+     
+
+
+
+    });
    // --------------------- COLOR PICKER --------------------- 
   scene.onPointerObservable.add((pointerInfo) => {
   if(pointerInfo.type == BABYLON.PointerEventTypes.POINTERDOWN){
@@ -719,9 +742,15 @@ const onSceneReady = async (e = {engine: new BABYLON.Engine, scene: new BABYLON.
         //XR_experienceReturns = XR_Module.XR_Experience(playground.ground, skybox, camera, scene);
         // Create a WebXR session manager
         // Create a WebXR camera
-   
+
         console.log("En Observable",xrCamera)
-        console.log(ARenabled)
+        console.log("Posicion camara XR ", xrCamera.position)
+        xrCamera.position = camera.position;
+        console.log("Posicion camara XR igualada a camara ", xrCamera.position)	
+        xrCamera.cameraDirection = camera.cameraDirection;
+        xrCamera.applyGravity = true;
+        xrCamera.attachControl(canvas, true);
+        console.log("Camara XR igualada a camara ", xrCamera)
 
 
         UIshown = "main";
@@ -969,6 +998,7 @@ const onSceneReady = async (e = {engine: new BABYLON.Engine, scene: new BABYLON.
       });
 
         botonAcelerar.onPointerDownObservable.add((pointerInfo) => {
+        xrCamera.position = camera.position; 
         if(fuel>0){
           console.log(xrCamera.position)
           xrCamera.position.addInPlace(xrCamera.getDirection(BABYLON.Axis.Z).scale(1*acceleration));

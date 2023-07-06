@@ -163,6 +163,9 @@ export async function XR_Experience(ground, skybox,camera, scene) {
 
                 ARenabled = true;
 
+
+                
+
             } else if (xrExperience.baseExperience.state === BABYLON.WebXRState.IN_XR) {
 
                 xrExperience.baseExperience.exitXRAsync();
@@ -225,12 +228,15 @@ export async function XR_Experience(ground, skybox,camera, scene) {
         
        
         console.log("En XR_Module",xrCamera);
+
+        
+        console.log("xrCamera position: " + xrCamera.position);
         
 
 
         console.log("Se ha cargado funciones XR satisfactoriamente.");
         
-        return {xrSessionManager, xrCamera, ARenabled};
+        return {xrExperience, xrCamera, ARenabled};
         
     })
 
