@@ -512,7 +512,7 @@ const onSceneReady = async (e = {engine: new BABYLON.Engine, scene: new BABYLON.
               acceleration -= 1;
             }
             }
-            camera.position.addInPlace(direction.scale(0.1*acceleration));
+          xrExperience.input.xrCamera.position.addInPlace(direction.scale(0.1*acceleration));
 
           if(alphaVisible == true){
             clickText.alpha -= 0.1;
@@ -994,11 +994,8 @@ const onSceneReady = async (e = {engine: new BABYLON.Engine, scene: new BABYLON.
       });
 
         botonAcelerar.onPointerDownObservable.add((pointerInfo) => {
-          xrExperience.input.xrCamera.position = camera.position; 
+          //xrExperience.input.xrCamera.position = camera.position; 
         if(fuel>0){
-          console.log(xrCamera.position)
-          xrCamera.position.addInPlace(xrCamera.getDirection(BABYLON.Axis.Z).scale(1*acceleration));
-          console.log(xrCamera.position)
           moving = true;
           accelerator.children[0].isVisible = false;
           accelerator.children[1].isVisible = true;
