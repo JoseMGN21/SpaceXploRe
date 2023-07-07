@@ -459,16 +459,13 @@ const onSceneReady = async (e = {engine: new BABYLON.Engine, scene: new BABYLON.
             break;
         }
 
-        if(ARenabled){
-          xrCamera.position = camera.position;
-        }
         var deltaTimeInsecs = (scene.getEngine().getDeltaTime()) / 1000;
         elapsedTime += deltaTimeInsecs;
         if(elapsedTime >= .1 && !ARenabled){
           var alphaVisible = true;
           var direction = camera.getDirection(BABYLON.Axis.Z);
           if(planet == null)
-            movedKM += camController.calculateDistance(camera.position,lastPosition);
+          movedKM += camController.calculateDistance(camera.position,lastPosition);
           kmTextBlock.text = "Kilometros recorridos: " + movedKM.toFixed(2)
           lastPosition.x = camera.position.x;
           lastPosition.y = camera.position.y;
@@ -496,13 +493,13 @@ const onSceneReady = async (e = {engine: new BABYLON.Engine, scene: new BABYLON.
           }
         } else if(elapsedTime >= .1 && ARenabled){
           var alphaVisible = true;
-          var direction = xrCamera.getDirection(BABYLON.Axis.Z);
+          var direction =  xrExperience.input.xrCamera.getDirection(BABYLON.Axis.Z);
           if(planet == null)
-            movedKM += camController.calculateDistance(xrCamera.position,lastPosition);
+            movedKM += camController.calculateDistance( xrExperience.input.xrCamera.position,lastPosition);
           kmTextBlock.text = "Kilometros recorridos: " + movedKM.toFixed(2)
-          lastPosition.x = xrCamera.position.x;
-          lastPosition.y = xrCamera.position.y;
-          lastPosition.z = xrCamera.position.z;
+          lastPosition.x = xrExperience.input.xrCamera.position.x;
+          lastPosition.y = xrExperience.input.xrCamera.position.y;
+          lastPosition.z = xrExperience.input.xrCamera.position.z;
           elapsedTime = 0;
           if(moving == true){
             if(acceleration < 100){
@@ -722,17 +719,16 @@ const onSceneReady = async (e = {engine: new BABYLON.Engine, scene: new BABYLON.
       console.log("En XRSessionInit")
       xrCamera.setTransformationFromNonVRCamera(camera);
 
-      xrCamera.position = camera.position;
+      xrExperience.input.xrCamera.position = camera.position;
+
+      ARenabled = true;
 
       console.log("Camara xr en XRSessionInit", xrCamera)
 
       console.log("Camara normal en XRSession: ", camera)
 
-      console.log("xrCamera.camera position ",xrCamera.camera);
+      console.log("xrCamera.camera position ", xrExperience.input.xrCamera.position);
     
-     
-
-
 
     });
    // --------------------- COLOR PICKER --------------------- 
@@ -743,14 +739,14 @@ const onSceneReady = async (e = {engine: new BABYLON.Engine, scene: new BABYLON.
         // Create a WebXR session manager
         // Create a WebXR camera
 
+        
         console.log("En Observable",xrCamera)
-        console.log("Posicion camara XR ", xrCamera.position)
-        xrCamera.position = camera.position;
-        console.log("Posicion camara XR igualada a camara ", xrCamera.position)	
-        xrCamera.cameraDirection = camera.cameraDirection;
-        xrCamera.applyGravity = true;
-        xrCamera.attachControl(canvas, true);
-        console.log("Camara XR igualada a camara ", xrCamera)
+        console.log("Posicion camara XR ", xrExperience.input.xrCamera.position)
+        xrExperience.input.xrCamera.position = camera.position;
+        console.log("Posicion camara XR igualada a camara ", xrExperience.input.xrCamera.position)	
+        xrExperience.input.xrCamera.cameraDirection = camera.cameraDirection;
+        xrExperience.input.xrCamera.attachControl(canvas, true);
+        console.log("Camara XR igualada a camara ", xrCamera)      
 
 
         UIshown = "main";
@@ -998,7 +994,7 @@ const onSceneReady = async (e = {engine: new BABYLON.Engine, scene: new BABYLON.
       });
 
         botonAcelerar.onPointerDownObservable.add((pointerInfo) => {
-        xrCamera.position = camera.position; 
+          xrExperience.input.xrCamera.position = camera.position; 
         if(fuel>0){
           console.log(xrCamera.position)
           xrCamera.position.addInPlace(xrCamera.getDirection(BABYLON.Axis.Z).scale(1*acceleration));
