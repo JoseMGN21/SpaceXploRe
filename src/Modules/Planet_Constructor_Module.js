@@ -1,5 +1,95 @@
 import * as BABYLON from 'babylonjs';
 import * as materiales from '../Modules/Materials_Module.js';
+import texturaSol from "../Resources/solar_system_textures/2k_sun.jpg";
+import texturaMercurio from "../Resources/solar_system_textures/2k_mercury.jpg";
+import texturaVenus from "../Resources/solar_system_textures/2k_venus_surface.jpg";
+import texturaTierra from "../Resources/solar_system_textures/2k_earth_daymap.jpg";
+import texturaLuna from "../Resources/solar_system_textures/2k_moon.jpg";
+import texturaMarte from "../Resources/solar_system_textures/2k_mars.jpg";
+import texturaJupiter from "../Resources/solar_system_textures/2k_jupiter.jpg";
+import texturaSaturno from "../Resources/solar_system_textures/2k_saturn.jpg";
+import texturaUrano from "../Resources/solar_system_textures/2k_uranus.jpg";
+import texturaNeptuno from "../Resources/solar_system_textures/2k_neptune.jpg";
+import texturaAnillosSaturno from "../Resources/solar_system_textures/2k_saturn_ring_alpha.png";
+
+
+
+/**
+ * @param {BABYLON.Scene} scene The instanced babylon scene.
+ * @returns {BABYLON.Mesh} The instanced mesh of the planet.
+ */
+export function createAllPlanets(scene) {
+    let planets = [];
+    let firstSceneContainer = new BABYLON.AssetContainer(scene);
+    let secondSceneContainer = new BABYLON.AssetContainer(scene);
+
+    let sol = planetCreate(54, texturaSol, "sun", new BABYLON.Vector3.Zero, 0, scene);
+    //planets.push(sol);
+    let mercurio = planetCreate(0.382 * 5, texturaMercurio, "mercury", new BABYLON.Vector3(15,0,0), 0.1, scene);
+    planets.push(mercurio);
+    let venus = planetCreate(0.949 * 5, texturaVenus, "venus", new BABYLON.Vector3(20,0,0), 177, scene);
+    planets.push(venus);
+    let tierra = planetCreate(1 * 5, texturaTierra, "earth", new BABYLON.Vector3(25,0,0), 203, scene);
+    planets.push(tierra);	
+    let luna = planetCreate(0.2724 * 5, texturaLuna, "moon", new BABYLON.Vector3(27,0,0), 0, scene);
+    //planets.push(luna);
+    let marte = planetCreate(0.532 * 5, texturaMarte, "mars", new BABYLON.Vector3(30,0,0), 25, scene);
+    planets.push(marte);
+    let jupiter = planetCreate(11.209 * 5, texturaJupiter, "jupiter", new BABYLON.Vector3(40,0,0), 3, scene);
+    planets.push(jupiter);
+    let saturno = planetCreate(9.449 * 5, texturaSaturno, "saturn", new BABYLON.Vector3(50,0,0), 26, scene);
+    planets.push(saturno);
+    let anillosSaturno = planetCreate(9.449 * 5, texturaAnillosSaturno, "saturnRings", new BABYLON.Vector3(50,0,0), 26, scene);
+    //planets.push(anillosSaturno);
+    let urano = planetCreate(4.007 * 5, texturaUrano, "uranus", new BABYLON.Vector3(60,0,0), 82, scene);
+    planets.push(urano);
+    let neptuno = planetCreate(3.883 * 5, texturaNeptuno, "neptune", new BABYLON.Vector3(70,0,0), 28, scene);
+    planets.push(neptuno);
+
+    firstSceneContainer.meshes.push(mercurio);
+    firstSceneContainer.meshes.push(venus);
+    firstSceneContainer.meshes.push(tierra);
+    firstSceneContainer.meshes.push(luna);
+    firstSceneContainer.meshes.push(marte);
+    secondSceneContainer.meshes.push(jupiter);
+    secondSceneContainer.meshes.push(saturno);
+    secondSceneContainer.meshes.push(anillosSaturno);
+    secondSceneContainer.meshes.push(urano);
+    secondSceneContainer.meshes.push(neptuno);
+
+    return {sol, mercurio, venus, tierra, luna, marte, jupiter, saturno, anillosSaturno, urano, neptuno, planets, firstSceneContainer, secondSceneContainer};
+}
+
+/**
+ * @param {BABYLON.Scene} scene The instanced babylon scene.
+ * @returns {BABYLON.Mesh} The instanced mesh of the planet.
+ */
+export function createAllOrbits(scene) {
+    let ua = 117.26846553048;
+    let orbits = [];
+
+    let orbitaMercurio = orbitCreate("mercurio", 0.38, ua, 88 * 5, 7, scene);
+    orbits.push(orbitaMercurio.orbit);
+    let orbitaVenus = orbitCreate("venus", 0.72, ua, 224 * 5, 3.4, scene);
+    orbits.push(orbitaVenus.orbit);
+    let orbitaTierra = orbitCreate("tierra", 1, ua, 365 * 5, 0, scene);
+    orbits.push(orbitaTierra.orbit);
+    let orbitaLuna = orbitCreate("luna", 0.0257 * 5, ua, 27 * 5, 0, scene);
+    orbits.push(orbitaLuna.orbit);
+    let orbitaMarte = orbitCreate("marte", 1.52, ua, 686, 1.85 * 5, scene);
+    orbits.push(orbitaMarte.orbit);
+    let orbitaJupiter = orbitCreate("jupiter", 5.20, ua, 4329 * 5, 1.3, scene);
+    orbits.push(orbitaJupiter.orbit);
+    let orbitaSaturno = orbitCreate("saturno", 9.54, ua, 10753 * 5, 2.49, scene);
+    orbits.push(orbitaSaturno.orbit);
+    let orbitaUrano = orbitCreate("urano", 19.22, ua, 30663 * 5, 0.77, scene);
+    orbits.push(orbitaUrano.orbit);
+    let orbitaNeptuno = orbitCreate("neptuno", 30.06, ua, 60148 * 5, 1.77, scene);
+    orbits.push(orbitaNeptuno.orbit);
+ 
+    return {orbitaMercurio, orbitaVenus, orbitaTierra, orbitaLuna, orbitaMarte, orbitaJupiter, orbitaSaturno, orbitaUrano, orbitaNeptuno, orbits};
+}
+
 
 /**
  * @param {int} diameter The diameter of the planet

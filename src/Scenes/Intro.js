@@ -11,17 +11,7 @@ import * as Questions_Module from "../Modules/Questions_Module";
 import * as AV from "../Modules/AV_module";
 import { PlayGround } from "../Babylon_components/PlayGround.js";
 import skyTexture from "../Resources/solar_system_textures/2k_stars_milky_way.jpg";
-import texturaSol from "../Resources/solar_system_textures/2k_sun.jpg";
-import texturaMercurio from "../Resources/solar_system_textures/2k_mercury.jpg";
-import texturaVenus from "../Resources/solar_system_textures/2k_venus_surface.jpg";
-import texturaTierra from "../Resources/solar_system_textures/2k_earth_daymap.jpg";
-import texturaLuna from "../Resources/solar_system_textures/2k_moon.jpg";
-import texturaMarte from "../Resources/solar_system_textures/2k_mars.jpg";
-import texturaJupiter from "../Resources/solar_system_textures/2k_jupiter.jpg";
-import texturaSaturno from "../Resources/solar_system_textures/2k_saturn.jpg";
-import texturaUrano from "../Resources/solar_system_textures/2k_uranus.jpg";
-import texturaNeptuno from "../Resources/solar_system_textures/2k_neptune.jpg";
-import texturaAnillosSaturno from "../Resources/solar_system_textures/2k_saturn_ring_alpha.png";
+
 import videoStartScreen from "../Resources/xplore_start_screen.mp4";
 import gifStartScreen from "../Resources/xplore_start_screen_gif.gif";
 import waving1 from "../Resources/waving_gif/tile000.png";
@@ -32,13 +22,6 @@ import waving5 from "../Resources/waving_gif/tile008.png";
 import waving6 from "../Resources/waving_gif/tile010.png";
 import waving7 from "../Resources/waving_gif/tile012.png";
 import waving8 from "../Resources/waving_gif/tile014.png";
-import uiEjemplo from "../Resources/guiTextureEjemplo.json"
-import mainUI from "../Resources/mainScreenGUI2.json"
-import configGUI from "../Resources/configGUI.json"
-import startScreenGUI from "../Resources/startScreenGUI.json"
-import planetInfoGUI from "../Resources/planetInfoGUI.json"
-import textBoxGUI from "../Resources/textBoxGUI.json"
-import questionsGUI from "../Resources/questionsGUI.json"
 import * as scenes from "../Modules/Scene_Manager_Module"
 import * as GUI from "babylonjs-gui"
 import * as planetConstructor from "../Modules/Planet_Constructor_Module"
@@ -58,13 +41,9 @@ const onSceneReady = async (e = {engine: new BABYLON.Engine, scene: new BABYLON.
     var questionsUIElements = [];
     var wavingGIFElements = [];
     var planetInfoUIElements = [];
-    var confirmButtonsUIElements = [];
-    var orbits = [];
-    var planets = [];	
+    var confirmButtonsUIElements = [];	
     var visitedPlanets = [];
     var shownQuestions = [];
-    var firstSceneContainer = new BABYLON.AssetContainer(e.scene);
-    var secondSceneContainer = new BABYLON.AssetContainer(e.scene);
     let movedKM = 0;
     let moving = false;
     let elapsedTime = 0;
@@ -159,102 +138,25 @@ const onSceneReady = async (e = {engine: new BABYLON.Engine, scene: new BABYLON.
 */
 
 
+    var {sol, mercurio, venus, tierra, luna, marte, jupiter, saturno, anillosSaturno, urano, neptuno, planets, firstSceneContainer, secondSceneContainer} = planetConstructor.createAllPlanets(scene, e);
+    
+    var {orbitaMercurio, orbitaVenus, orbitaTierra, orbitaLuna, orbitaMarte, orbitaJupiter, orbitaSaturno, orbitaUrano, orbitaNeptuno, orbits} = planetConstructor.createAllOrbits(scene, e);
+    
+    defineParents();
 
-    var sol = planetConstructor.planetCreate(54, texturaSol, "sun", new BABYLON.Vector3.Zero, 0, scene);
-    //console.log("diametro del sol" + sol.Mesh.diameter);
-    //planets.push(sol);
-    //console.log(sol.position);
-    var mercurio = planetConstructor.planetCreate(0.382 * 5, texturaMercurio, "mercury", new BABYLON.Vector3(15,0,0), 0.1, scene);
-    planets.push(mercurio);
-    firstSceneContainer.meshes.push(mercurio);
-    var venus = planetConstructor.planetCreate(0.949 * 5, texturaVenus, "venus", new BABYLON.Vector3(20,0,0), 177, scene);
-    planets.push(venus);
-    firstSceneContainer.meshes.push(venus);
-    var tierra = planetConstructor.planetCreate(1 * 5, texturaTierra, "earth", new BABYLON.Vector3(25,0,0), 203, scene);
-    planets.push(tierra);	
-    firstSceneContainer.meshes.push(tierra);
-    var luna = planetConstructor.planetCreate(0.2724 * 5, texturaLuna, "moon", new BABYLON.Vector3(27,0,0), 0, scene);
-    //planets.push(luna);
-    firstSceneContainer.meshes.push(luna);
-    var marte = planetConstructor.planetCreate(0.532 * 5, texturaMarte, "mars", new BABYLON.Vector3(30,0,0), 25, scene);
-    planets.push(marte);
-    firstSceneContainer.meshes.push(marte);
-    var jupiter = planetConstructor.planetCreate(11.209 * 5, texturaJupiter, "jupiter", new BABYLON.Vector3(40,0,0), 3, scene);
-    planets.push(jupiter);
-    secondSceneContainer.meshes.push(jupiter);
-    var saturno = planetConstructor.planetCreate(9.449 * 5, texturaSaturno, "saturn", new BABYLON.Vector3(50,0,0), 26, scene);
-    planets.push(saturno);
-    secondSceneContainer.meshes.push(saturno);
-    var anillosSaturno = planetConstructor.planetCreate(9.449 * 5, texturaAnillosSaturno, "saturnRings", new BABYLON.Vector3(50,0,0), 26, scene);
-    //planets.push(anillosSaturno);
-    secondSceneContainer.meshes.push(anillosSaturno);
-    var urano = planetConstructor.planetCreate(4.007 * 5, texturaUrano, "uranus", new BABYLON.Vector3(60,0,0), 82, scene);
-    planets.push(urano);
-    secondSceneContainer.meshes.push(urano);
-    var neptuno = planetConstructor.planetCreate(3.883 * 5, texturaNeptuno, "neptune", new BABYLON.Vector3(70,0,0), 28, scene);
-    planets.push(neptuno);
-    secondSceneContainer.meshes.push(neptuno);
-
-    var ua = 117.26846553048;
-
-    var orbitaMercurio = planetConstructor.orbitCreate("mercurio", 0.38, ua, 88 * 5, 7, scene);
-    orbits.push(orbitaMercurio.orbit);
-    var orbitaVenus = planetConstructor.orbitCreate("venus", 0.72, ua, 224 * 5, 3.4, scene);
-    orbits.push(orbitaVenus.orbit);
-    var orbitaTierra = planetConstructor.orbitCreate("tierra", 1, ua, 365 * 5, 0, scene);
-    orbits.push(orbitaTierra.orbit);
-    var orbitaLuna = planetConstructor.orbitCreate("luna", 0.0257 * 5, ua, 27 * 5, 0, scene);
-    orbits.push(orbitaLuna.orbit);
-    var orbitaMarte = planetConstructor.orbitCreate("marte", 1.52, ua, 686, 1.85 * 5, scene);
-    orbits.push(orbitaMarte.orbit);
-    var orbitaJupiter = planetConstructor.orbitCreate("jupiter", 5.20, ua, 4329 * 5, 1.3, scene);
-    orbits.push(orbitaJupiter.orbit);
-    var orbitaSaturno = planetConstructor.orbitCreate("saturno", 9.54, ua, 10753 * 5, 2.49, scene);
-    orbits.push(orbitaSaturno.orbit);
-    var orbitaUrano = planetConstructor.orbitCreate("urano", 19.22, ua, 30663 * 5, 0.77, scene);
-    orbits.push(orbitaUrano.orbit);
-    var orbitaNeptuno = planetConstructor.orbitCreate("neptuno", 30.06, ua, 60148 * 5, 1.77, scene);
-    orbits.push(orbitaNeptuno.orbit);
-    mercurio.parent = orbitaMercurio.orbit;
     var movimientoMercurio = 0;
-    venus.parent = orbitaVenus.orbit;
     var movimientoVenus = 0;
-    tierra.parent = orbitaTierra.orbit;
     var movimientoTierra = 0;
-    orbitaLuna.orbit.parent = tierra;
-    luna.parent = orbitaLuna.orbit;
     var movimientoLuna = 0;
-    marte.parent = orbitaMarte.orbit;
     var movimientoMarte = 0;
-    jupiter.parent = orbitaJupiter.orbit;
     var movimientoJupiter = 0;
-    saturno.parent = orbitaSaturno.orbit;
-    anillosSaturno.parent = saturno;
     var movimientoSaturno = 0;
-    urano.parent = orbitaUrano.orbit;
     var movimientoUrano = 0;
-    neptuno.parent = orbitaNeptuno.orbit;
     var movimientoNeptuno = 0;
+    
+    var {advancedTextureMain, advancedTextureConfig, advancedTextureStartScreen, advancedTextureTextBox, advancedTexturePlanetInfo, advancedTextureQuestions} = UI.createGUI(scene);
 
-    let advancedTextureMain = GUI.AdvancedDynamicTexture.CreateFullscreenUI("mainUI", true, scene);
-    let advancedTextureConfig = GUI.AdvancedDynamicTexture.CreateFullscreenUI("configUI", true, scene);
-    let advancedTextureStartScreen = GUI.AdvancedDynamicTexture.CreateFullscreenUI("startScreenUI", true, scene);
-    let advancedTextureTextBox = GUI.AdvancedDynamicTexture.CreateFullscreenUI("textBoxUI", true, scene);
-    let advancedTexturePlanetInfo = GUI.AdvancedDynamicTexture.CreateFullscreenUI("planetInfoUI", true, scene);
-    let advancedTextureQuestions = GUI.AdvancedDynamicTexture.CreateFullscreenUI("questionsUI", true, scene);
-
-    // Set the ideal W and H if you wish to scale with the window.
-    advancedTextureMain.idealWidth = 1920;
-    advancedTextureMain.idealHeight = 1080;
-    advancedTextureConfig.idealWidth = 1920;
-    advancedTextureConfig.idealHeight = 1080;
-
-    let loadedGUI = await advancedTextureMain.parseSerializedObject(mainUI);
-    let loadedGUIConfig = await advancedTextureConfig.parseSerializedObject(configGUI);
-    let loadedGUIStartScreen = await advancedTextureStartScreen.parseSerializedObject(startScreenGUI);
-    let loadedGUITextBox = await advancedTextureTextBox.parseSerializedObject(textBoxGUI);
-    let loadedGUIPlanetInfo = await advancedTexturePlanetInfo.parseSerializedObject(planetInfoGUI);
-    let loadedGUIQuestions = await advancedTextureQuestions.parseSerializedObject(questionsGUI);
+    let {loadedGUI, loadedGUIConfig, loadedGUIStartScreen, loadedGUITextBox, loadedGUIPlanetInfo, loadedGUIQuestions} = await UI.loadGUI();
 
     advancedTextureMain.addControl(loadedGUI);
     advancedTextureConfig.addControl(loadedGUIConfig);
@@ -1025,6 +927,21 @@ const onSceneReady = async (e = {engine: new BABYLON.Engine, scene: new BABYLON.
       console.log(ARenabled)
      }
      */
+
+  function defineParents(){
+      mercurio.parent = orbitaMercurio.orbit;
+      venus.parent = orbitaVenus.orbit;
+      tierra.parent = orbitaTierra.orbit;
+      orbitaLuna.orbit.parent = tierra;
+      luna.parent = orbitaLuna.orbit;
+      marte.parent = orbitaMarte.orbit;
+      jupiter.parent = orbitaJupiter.orbit;
+      saturno.parent = orbitaSaturno.orbit;
+      anillosSaturno.parent = saturno;
+      urano.parent = orbitaUrano.orbit;
+      neptuno.parent = orbitaNeptuno.orbit;
+  }
+
 }
 
 
